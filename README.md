@@ -188,11 +188,108 @@ So I created the `/var/www/html/download/android/` directory, and used wget to
 get the latest gplay apk release there. The goal was to get this link working:
 http://download.delta.chat/android/deltachat-gplay-release-0.930.2.apk
 
-So I created a new nginx config file in `/etc/nginx/sites-available/`,
+```
+sudo mkdir -p /var/www/html/download/android
+sudo mkdir -p /var/www/html/download/desktop
+sudo mkdir -p /var/www/html/download/ios
+sudo chown jekyll:jekyll /var/www/html/download -R
+cd /var/www/html/download/android
+sudo wget https://github.com/deltachat/deltachat-android/releases/download/preview-v0.930.2/deltachat-gplay-release-0.930.2.apk
+```
+
+Then I created a new nginx config file in `/etc/nginx/sites-available/`,
 download.delta.chat, and configured it to listen to the URL
 download.delta.chat. It is supposed to return a file, if it exists, and
 redirect to https://delta.chat/en/download, if there is no file.
 
+I linked to it from `/etc/nginx/sites-enabled/` to activate it, and reloaded
+nginx:
+
+```
+sudo ln -rs /etc/nginx/sites-available/download.delta.chat /etc/nginx/sites-enabled/download.delta.chat
+sudo service nginx reload
+```
+
 The new config file is in this repository, too.
+
+In the end I added a DNS entry to netlify.com, to make download.delta.chat
+available from the internet:
+
+```
+A	download	3600	37.218.242.41
+```
+
+The link works now, so great :) 
+
+### DNS Problems With Netlify
+
+So finally the point came to change DNS and do Let's Encrypt.
+First I wanted to create the following DNS entry:
+
+```
+A	@	180	37.218.242.41
+```
+
+Problem: Netlify doesn't let you delete certain DNS entry, and this one was
+conflicting with a non-deletable one. I decided to come back later, and first
+do Let's Encrypt for download.delta.chat.
+
+### Let's Encrypt for download.delta.chat
+
+Setting up Let's Encrypt for download.delta.chat was super easy, basically just
+one command at this point:
+
+```
+$ sudo certbot --nginx
+[sudo] password for emil: 
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Plugins selected: Authenticator nginx, Installer nginx
+
+Which names would you like to activate HTTPS for?
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+1: delta.chat
+2: download.delta.chat
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Select the appropriate numbers separated by commas and/or spaces, or leave input
+blank to select all options shown (Enter 'c' to cancel): 2
+Obtaining a new certificate
+Performing the following challenges:
+http-01 challenge for download.delta.chat
+Waiting for verification...
+Cleaning up challenges
+Deploying Certificate to VirtualHost /etc/nginx/sites-enabled/download.delta.chat
+
+Please choose whether or not to redirect HTTP traffic to HTTPS, removing HTTP access.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+1: No redirect - Make no further changes to the webserver configuration.
+2: Redirect - Make all requests redirect to secure HTTPS access. Choose this for
+new sites, or if you're confident your site works on HTTPS. You can undo this
+change by editing your web server's configuration.
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Select the appropriate number [1-2] then [enter] (press 'c' to cancel): 2
+Redirecting all traffic on port 80 to ssl in /etc/nginx/sites-enabled/download.delta.chat
+
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+Congratulations! You have successfully enabled https://download.delta.chat
+
+You should test your configuration at:
+https://www.ssllabs.com/ssltest/analyze.html?d=download.delta.chat
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+IMPORTANT NOTES:
+ - Congratulations! Your certificate and chain have been saved at:
+   /etc/letsencrypt/live/download.delta.chat/fullchain.pem
+   Your key file has been saved at:
+   /etc/letsencrypt/live/download.delta.chat/privkey.pem
+   Your cert will expire on 2020-01-21. To obtain a new or tweaked
+   version of this certificate in the future, simply run certbot again
+   with the "certonly" option. To non-interactively renew *all* of
+   your certificates, run "certbot renew"
+ - If you like Certbot, please consider supporting our work by:
+
+   Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
+   Donating to EFF:                    https://eff.org/donate-le
+```
+
 
 
