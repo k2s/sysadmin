@@ -175,3 +175,8 @@ repository. This way the CI scripts can access them.
 As I know restarted the tests, the site was available at
 `http://37.218.242.41/_site/en/` - a huge success :)
 
+Most of the links were broken first though. I had to make some changes to
+`/etc/nginx/sites-enabled/default` to fix them. A copy of the file is in this
+repository as well.
+
+
