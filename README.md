@@ -1,5 +1,7 @@
 # Setup page VM for delta.chat & download.delta.chat
 
+For questions: [compl4xx@testrun.org](mailto:compl4xx@testrun.org)
+
 This is how I set up the VM for delta.chat & the download page. The reasons
 were to migrate away from netlify, and to have a download space where we can
 push deliverables in automated release scripts.
@@ -176,7 +178,21 @@ As I know restarted the tests, the site was available at
 `http://37.218.242.41/_site/en/` - a huge success :)
 
 Most of the links were broken first though. I had to make some changes to
-`/etc/nginx/sites-enabled/default` to fix them. A copy of the file is in this
-repository as well.
+`/etc/nginx/sites-enabled/default` to fix them. Afterwards I renamed the config
+file to delta.chat and linked to it from `/etc/nginx/sites-enabled/` to make it
+active. A copy of the file is in this repository as well.
+
+### Download directory
+
+So I created the `/var/www/html/download/android/` directory, and used wget to
+get the latest gplay apk release there. The goal was to get this link working:
+http://download.delta.chat/android/deltachat-gplay-release-0.930.2.apk
+
+So I created a new nginx config file in `/etc/nginx/sites-available/`,
+download.delta.chat, and configured it to listen to the URL
+download.delta.chat. It is supposed to return a file, if it exists, and
+redirect to https://delta.chat/en/download, if there is no file.
+
+The new config file is in this repository, too.
 
 

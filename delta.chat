@@ -1,4 +1,4 @@
-## /etc/nginx/sites-enabled/default
+## /etc/nginx/sites-enabled/delta.chat
 ##
 # You should look at the following URL's in order to grasp a solid understanding
 # of Nginx configuration files in order to fully unleash the power of Nginx.
@@ -44,7 +44,7 @@ server {
 	# Add index.php to the list if you are using PHP
 	index index.html index.htm index.nginx-debian.html;
 
-	server_name _;
+	server_name delta.chat;
 
 	location / {
 		# First attempt to serve request as file, then
