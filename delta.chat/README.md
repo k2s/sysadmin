@@ -291,5 +291,10 @@ IMPORTANT NOTES:
    Donating to EFF:                    https://eff.org/donate-le
 ```
 
+### Changing DNS of delta.chat
+
+To change the DNS entry of delta.chat to 37.218.242.41, we first needed to
+migrate our DNS servers away from netlify, towards Hetzner.
+
 
 
