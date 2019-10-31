@@ -246,10 +246,10 @@ Saving debug log to /var/log/letsencrypt/letsencrypt.log
 Plugins selected: Authenticator nginx, Installer nginx
 
 Which names would you like to activate HTTPS for?
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ 
 1: delta.chat
 2: download.delta.chat
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 Select the appropriate numbers separated by commas and/or spaces, or leave input
 blank to select all options shown (Enter 'c' to cancel): 2
 Obtaining a new certificate
@@ -260,21 +260,21 @@ Cleaning up challenges
 Deploying Certificate to VirtualHost /etc/nginx/sites-enabled/download.delta.chat
 
 Please choose whether or not to redirect HTTP traffic to HTTPS, removing HTTP access.
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ 
 1: No redirect - Make no further changes to the webserver configuration.
 2: Redirect - Make all requests redirect to secure HTTPS access. Choose this for
 new sites, or if you're confident your site works on HTTPS. You can undo this
 change by editing your web server's configuration.
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ 
 Select the appropriate number [1-2] then [enter] (press 'c' to cancel): 2
 Redirecting all traffic on port 80 to ssl in /etc/nginx/sites-enabled/download.delta.chat
 
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 Congratulations! You have successfully enabled https://download.delta.chat
 
 You should test your configuration at:
 https://www.ssllabs.com/ssltest/analyze.html?d=download.delta.chat
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
 
 IMPORTANT NOTES:
  - Congratulations! Your certificate and chain have been saved at:
@@ -291,10 +291,33 @@ IMPORTANT NOTES:
    Donating to EFF:                    https://eff.org/donate-le
 ```
 
+### Hardening Login Security of jekyll
+
+Source: https://serverfault.com/a/83857
+
+When we configured the GitHub actions to push, we had to give the private key
+of jekyll to GitHub (as a GitHub secret). It's only accessible for members of
+the deltachat GitHub organization, and for GitHub of course. So I decided we
+had to limit access of the key to scp, with the rssh tool.
+
+I set it up like this:
+
+```
+sudo apt install rssh
+sudo chsh -s /usr/bin/rssh jekyll
+cd /home/jekyll
+sudo chmod u-w * -R
+sudo chmod u-w .* -R
+sudo vim /etc/rssh.conf
+```
+
+In the config file, I basically only uncommented `allowscp`.  I committed it to
+etckeeper, but a copy is also in this repository.
+
 ### Changing DNS of delta.chat
 
 To change the DNS entry of delta.chat to 37.218.242.41, we first needed to
 migrate our DNS servers away from netlify, towards Hetzner.
 
-
+to do: describe migration
 

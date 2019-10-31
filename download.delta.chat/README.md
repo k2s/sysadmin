@@ -30,18 +30,18 @@ executed by a GitHub action.
 
 ### Copy the file to download.delta.chat
 
-I chose
+We chose
 https://download.delta.chat/desktop/preview/deltachat-desktop-$branch.AppImage
 as an example download path - the branches don't get a folder of their own,
-because scp isn't able to create folders, and we would need to give the SSH key
-more permissions.
+because scp isn't easily able to create folders, and we would need to give the
+SSH key more permissions.
 
-So I modified the GitHub action to rename the deliverables before upload, so
-they had the branch name in the filename, and were distinguishable from other
-deliverables.
+So treefit modified the GitHub action to rename the deliverables before upload,
+so they had the branch name in the filename, and were distinguishable from
+other deliverables.
 
-To copy the built files, I used the scp action I knew from the deltachat-pages
-repository.
+To copy the built files, treefit used the scp action we knew from the
+deltachat-pages repository.
 
 I also added the server's user name and the private key to the GitHub secrets,
 so GitHub can actually execute the script.
@@ -54,10 +54,22 @@ downloadable executable files. This way, they are easily accessible.
 
 Again I chose the workflows from deltachat-pages as an example.
 
----
-to do: finish scp
-to do: delete preview builds from merged and closed PRs
+### Delete builds from closed PRs
 
+The download.delta.chat VM has 200GB of space, too small to keep all the
+preview builds from the past. So I wrote another GitHub workflow to replace the
+outdated builds with small files which say "This preview build is outdated and
+has been removed." 
+
+They would still have the old filename, including the file ending, which is not
+intuitive for a text file and generally ugly.
+
+#### Cron job to delete the overwrite-text files
+
+
+
+---
+to do: cron job to delete the removed preview builds
 
 ## Android
 
