@@ -321,3 +321,48 @@ migrate our DNS servers away from netlify, towards Hetzner.
 
 to do: describe migration
 
+### Let's Encrypt for delta.chat 2nd try
+
+So I tried again to ask for a delta.chat Let's Encrypt cert:
+
+```
+$ sudo certbot --nginx
+[sudo] password for emil: 
+Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Plugins selected: Authenticator nginx, Installer nginx
+
+Which names would you like to activate HTTPS for?
+
+1: delta.chat
+2: download.delta.chat
+
+Select the appropriate numbers separated by commas and/or spaces, or leave input
+blank to select all options shown (Enter 'c' to cancel): 1
+Obtaining a new certificate
+Performing the following challenges:
+http-01 challenge for delta.chat
+Waiting for verification...
+Cleaning up challenges
+Failed authorization procedure. delta.chat (http-01): urn:ietf:params:acme:error:unauthorized :: The client lacks sufficient authorization :: Invalid response from https://delta.chat/.well-known/acme-challenge/LYgfZRe-pDpWCD9CBAX2wB0PMmDlKZQrTF7ItkNO0x8 [104.198.14.52]: "<!DOCTYPE html>\n<html>\n\n<head>\n<title>Page not found - Delta Chat</title>\n<meta charset=\"UTF-8\" />\n<meta name=\"viewport\" content"
+
+IMPORTANT NOTES:
+ - The following errors were reported by the server:
+
+   Domain: delta.chat
+   Type:   unauthorized
+   Detail: Invalid response from
+   https://delta.chat/.well-known/acme-challenge/LYgfZRe-pDpWCD9CBAX2wB0PMmDlKZQrTF7ItkNO0x8
+   [104.198.14.52]: "<!DOCTYPE html>\n<html>\n\n<head>\n<title>Page
+   not found - Delta Chat</title>\n<meta charset=\"UTF-8\" />\n<meta
+   name=\"viewport\" content"
+
+   To fix these errors, please make sure that your domain name was
+   entered correctly and the DNS A/AAAA record(s) for that domain
+   contain(s) the right IP address.
+```
+
+Apparently delta.chat still pointed to 104.198.14.52, the old ip. Probably the
+minimum TTL of 3600 was responsible for that. I didn't have a whole hour time
+to wait for this, so I changed the IP back to 104.198.14.52 in the Hetzner DNS
+settings and decided to try again another time.
+
