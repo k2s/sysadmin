@@ -424,6 +424,8 @@ IMPORTANT NOTES:
 This time it worked! https://delta.chat resolved well and showed the usual
 delta.chat website.
 
+### Subdomains: www & master
+
 Now I only had to point the CNAME records for www and master to `delta.chat.`,
 to get rid of netlify completely:
 
@@ -432,6 +434,30 @@ master               180 IN CNAME   delta.chat.
 www                  180 IN CNAME   delta.chat.
 ```
 
+#### Let's Encrypt for www and master
+
+After that, I also had to add Let's Encrypt certificates for www and master. So
+I copied the default nginx configuration for delta.chat to www and master, and
+enabled it:
+
+```
+emil@page:/etc/nginx/sites-available$ sudo cp delta.chat www.delta.chat
+emil@page:/etc/nginx/sites-available$ sudo cp delta.chat master.delta.chat
+emil@page:/etc/nginx/sites-available$ sudo ln -rs /etc/nginx/sites-available/www.delta.chat /etc/nginx/sites-enabled/www.delta.chat
+emil@page:/etc/nginx/sites-available$ sudo ln -rs /etc/nginx/sites-available/master.delta.chat /etc/nginx/sites-enabled/master.delta.chat
+```
+
+After that, `sudo service nginx reload` threw an error: `nginx: [emerg] a
+duplicate default server for 0.0.0.0:80 in
+/etc/nginx/sites-enabled/master.delta.chat:106`.  So I adjusted the nginx
+configuration of master and www, so there was only one default_server,
+delta.chat.
+
+After reloading nginx, I could install Let's Encrypt certificates for them as
+well.
+
+I committed the changes to etckeeper. The nginx configs are in this repository.
+
 ## That's it!
 
 So now delta.chat is hosted at greenhost.nl.
@@ -439,4 +465,5 @@ So now delta.chat is hosted at greenhost.nl.
 The preview links seem to work mostly fine, but if you want to click on the
 blogposts, you only get a link to the blogposts deployed on production. The
 workaround is to paste the commit sha into the URL.
+
 
