@@ -434,4 +434,9 @@ www                  180 IN CNAME   delta.chat.
 
 ## That's it!
 
-So 
+So now delta.chat is hosted at greenhost.nl.
+
+The preview links seem to work mostly fine, but if you want to click on the
+blogposts, you only get a link to the blogposts deployed on production. The
+workaround is to paste the commit sha into the URL.
+
