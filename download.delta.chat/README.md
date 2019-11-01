@@ -64,16 +64,28 @@ has been removed."
 They would still have the old filename, including the file ending, which is not
 intuitive for a text file and generally ugly.
 
+Unfortunately it seems that right now the wrong branch name is passed to the
+scp command:
+https://github.com/deltachat/deltachat-desktop/pull/1088#issuecomment-548884613
+
 #### Cron job to delete the overwrite-text files
 
+Source: https://stackoverflow.com/questions/27789254/shell-script-to-delete-files-smaller-than-x-kb
 
+To delete the 53 byte small overwrite files, I want to add a cronjob at
+/etc/cron.d/delete-old-builds, and commit it with etckeeper:
+
+```
+find /var/www/html/download/desktop/preview/ -size 53c -delete
+```
 
 ---
+to do: fix overwrite branch name
 to do: cron job to delete the removed preview builds
 
 ## Android
 
-we need to create own docker-image for this
+we need to create own workflow for this
 
 
 
