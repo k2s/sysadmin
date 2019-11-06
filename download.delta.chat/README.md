@@ -79,7 +79,7 @@ To delete the 53 byte small overwrite files, I added a cronjob at
 /etc/cron.d/delete-old-builds, and commit it with etckeeper:
 
 ```
-find /var/www/html/download/desktop/preview/ -size 53c -delete
+*/10 * * * * root find /var/www/html/download/desktop/preview/ -size 53c -delete
 sudo etckeeper commit "cronjob to delete desktop builds"
 ```
 
