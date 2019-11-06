@@ -8,7 +8,7 @@ repository.
 ## Pushing desktop preview builds
 
 This document tells a story on how I configured the desktop preview builds to
-be automatically pushed to download.delta.chat.  This will serve both as an
+be automatically pushed to download.delta.chat. This will serve both as an
 example on how to use this service, as well as documentation how I did it.
 
 The clue are GitHub actions - they are basically executing the build job and do
@@ -53,6 +53,13 @@ included a small GitHub action which replies to the PR with the link to the
 downloadable executable files. This way, they are easily accessible.
 
 Again I chose the workflows from deltachat-pages as an example.
+
+#### Posting download links to check details instead
+
+Later we decided that comments were to noisy. Instead we posted the links to
+the details of checks, via the GitHub statuses API. This is done in the GitHub
+build action with curl requests:
+https://github.com/deltachat/deltachat-desktop/pull/1116/files
 
 ### Delete builds from closed PRs
 
