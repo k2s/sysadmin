@@ -28,9 +28,10 @@ You can just backup and restore the whole docker container very easily:
 https://meta.discourse.org/t/backup-discourse-from-the-command-line/64364
 
 The backup server is defined in `/root/.ssh/config` as `backup`, so you can
-refer to it like that in scripts which are executed by root.
+refer to it like that in scripts which are executed by root. You can find this
+file as well as the SSH private key in the secrets folder in the OTF repo.
 
-I created a borg test repository:
+I created a borg repository:
 
 ```
 borg init backup:support.delta.chat --encryption=repokey
