@@ -49,3 +49,17 @@ sudo etckeeper commit "enable get.delta.chat, let's encrypt"
 
 I chose 3 for "get.delta.chat" and 2 for "redirect http to https".
 
+### Enable pushing for the jekyll user
+
+To enable the jekyll user to scp files to this website, I executed this
+command:
+
+```
+sudo chown jekyll:jekyll /var/www/html/get -R
+```
+
+This way, we can push updates to this page automatically with GitHub actions.
+The private key is deposited in the github secrets of the deltachat-desktop and
+deltachat-pages repositories. You can also find it in our git-crypt vault in
+the OTF repository.
+
