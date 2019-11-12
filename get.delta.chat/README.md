@@ -51,8 +51,8 @@ I chose 3 for "get.delta.chat" and 2 for "redirect http to https".
 
 ### Enable pushing for the jekyll user
 
-To enable the jekyll user to scp files to this website, I executed this
-command:
+To enable the jekyll user to push files to this website via scp, I executed
+this command:
 
 ```
 sudo chown jekyll:jekyll /var/www/html/get -R
