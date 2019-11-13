@@ -314,6 +314,12 @@ sudo vim /etc/rssh.conf
 In the config file, I basically only uncommented `allowscp`.  I committed it to
 etckeeper, but a copy is also in this repository.
 
+#### Allowing rsync
+
+Later we realized we also wanted to copy symlinks, so we could make a link for
+stable releases. This is only possible with rsync, not with scp. So I also
+allowed rsync in the rssh config.
+
 ### Changing DNS of delta.chat
 
 To change the DNS entry of delta.chat to 37.218.242.41, we first needed to
