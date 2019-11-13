@@ -469,6 +469,13 @@ well.
 
 I committed the changes to etckeeper. The nginx configs are in this repository.
 
+#### Adding former netlify redirects
+
+On 2019-11-13 we realized that the old redirects from
+https://github.com/deltachat/deltachat-pages/blob/d4034e0c65dfcbc2a54e07975857fe91939d6d07/_redirects
+which worked under netlify didn't work anymore. So I added them to the nginx
+config of delta.chat, reloaded the nginx server, and committed it to etckeeper.
+
 ## That's it!
 
 So now delta.chat is hosted at greenhost.nl.

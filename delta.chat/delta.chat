@@ -20,8 +20,6 @@
 # Default server configuration
 #
 server {
-	listen 80 default_server;
-	listen [::]:80 default_server;
 
 	# SSL configuration
 	#
@@ -44,7 +42,9 @@ server {
 	# Add index.php to the list if you are using PHP
 	index index.html index.htm index.nginx-debian.html;
 
-	server_name delta.chat;
+	server_name delta.chat; 
+
+
 
 	location / {
 		# First attempt to serve request as file, then
@@ -69,6 +69,31 @@ server {
 	#location ~ /\.ht {
 	#	deny all;
 	#}
+
+    listen [::]:443 ssl; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/delta.chat/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/delta.chat/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+
+    # Redirects (former netlify _redirects)
+    rewrite /apk https://download.delta.chat/android/deltachat-stable.apk permanent;
+    rewrite /new https://download.delta.chat/android/deltachat-stable.apk permanent;
+
+    rewrite /de/delta-macht-chatten-besser  /en/2017-05-31-delta-makes-chatting-better#german permanent;
+    rewrite /de/david-gegen-goliath         /en/2017-05-31-delta-makes-chatting-better#david-gegen-goliath---wie-kam-es-dazu permanent;
+    rewrite /en/2018-07-19-introducing-support-forum  /en/2018-08-19-introducing-support-forum permanent;
+    rewrite /en/spec      https://github.com/deltachat/spec/blob/master/spec.md#email-chat-specification permanent;
+    rewrite /en/standards https://github.com/deltachat/deltachat-android/blob/master/standards.md#standards-used-in-delta-chat permanent;
+
+    rewrite /de/support  /de/contribute permanent;
+    rewrite /en/support  /en/contribute permanent;
+    rewrite /es/support  /es/contribute permanent;
+    rewrite /it/support  /it/contribute permanent;
+    rewrite /pt/support  /pt/contribute permanent;
+    rewrite /ru/support  /ru/contribute permanent;
 }
 
 
@@ -90,3 +115,16 @@ server {
 #		try_files $uri $uri/ =404;
 #	}
 #}
+
+server {
+
+	listen 80 default_server;
+	listen [::]:80 default_server;
+
+	server_name delta.chat;
+        if ($host = delta.chat) {
+	        return 301 https://$host$request_uri;
+	}
+
+
+}
