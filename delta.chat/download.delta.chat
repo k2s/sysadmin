@@ -30,9 +30,10 @@ server {
 	root /var/www/html/download;
 
 	location / {
-		try_files $uri @redirect;
+		try_files $uri $uri/ @redirect;
+		autoindex on;
 	}
-	
+
 	location @redirect {
 		return 301 https://delta.chat/en/download;
 	}
