@@ -39,6 +39,11 @@ to `/etc/hosts`:
 
 The error stopped appearing afterwards.
 
+### Passwordless sudo
+
+Later (2019-11-13), I configured sudo so that users in the sudo group don't
+need a password anymore. I committed it to etckeeper.
+
 ## SSH config
 
 First I copied `/root/.ssh/authorized_keys` to
