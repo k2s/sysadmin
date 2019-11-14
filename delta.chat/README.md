@@ -187,6 +187,10 @@ Most of the links were broken first though. I had to make some changes to
 file to delta.chat and linked to it from `/etc/nginx/sites-enabled/` to make it
 active. A copy of the file is in this repository as well.
 
+**To do:** The links to the blogposts at https://delta.chat/en/blog still don't
+work, i.e. they always point to the main page, not to the preview. Inserting
+the PR ID to the URL is a workaround, until we have fixed this.
+
 ### Download directory
 
 So I created the `/var/www/html/download/android/` directory, and used wget to
@@ -469,7 +473,7 @@ well.
 
 I committed the changes to etckeeper. The nginx configs are in this repository.
 
-#### Adding former netlify redirects
+### Adding former netlify redirects
 
 On 2019-11-13 we realized that the old redirects from
 https://github.com/deltachat/deltachat-pages/blob/d4034e0c65dfcbc2a54e07975857fe91939d6d07/_redirects
