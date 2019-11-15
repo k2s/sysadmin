@@ -484,8 +484,13 @@ config of delta.chat, reloaded the nginx server, and committed it to etckeeper.
 
 So now delta.chat is hosted at greenhost.nl.
 
+### Known Issues
+
 The preview links seem to work mostly fine, but if you want to click on the
 blogposts, you only get a link to the blogposts deployed on production. The
 workaround is to paste the commit sha into the URL.
 
+If you open a Pull Request at https://github.com/deltachat/deltachat-pages/,
+you only get a preview link at the second commit. Background:
+https://github.community/t5/GitHub-Actions/Publishing-download-links-in-the-check-details-instead-of/m-p/37275/highlight/false#M2881
 
