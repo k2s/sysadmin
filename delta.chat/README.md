@@ -475,8 +475,8 @@ I committed the changes to etckeeper. The nginx configs are in this repository.
 
 ### Adding former netlify redirects
 
-On 2019-11-13 we realized that the old redirects from
-https://github.com/deltachat/deltachat-pages/blob/d4034e0c65dfcbc2a54e07975857fe91939d6d07/_redirects
+On 2019-11-13 we realized that the [old redirects](
+https://github.com/deltachat/deltachat-pages/blob/d4034e0c65dfcbc2a54e07975857fe91939d6d07/_redirects)
 which worked under netlify didn't work anymore. So I added them to the nginx
 config of delta.chat, reloaded the nginx server, and committed it to etckeeper.
 
@@ -493,4 +493,35 @@ workaround is to paste the commit sha into the URL.
 If you open a Pull Request at https://github.com/deltachat/deltachat-pages/,
 you only get a preview link at the second commit. Background:
 https://github.community/t5/GitHub-Actions/Publishing-download-links-in-the-check-details-instead-of/m-p/37275/highlight/false#M2881
+
+## Staging
+
+Later I wanted to create a staging site to be able to try out different nginx
+configurations with the normal site content.  For this reason, I created the
+staging.delta.chat subdomain at hetzner, copied and adjusted the delta.chat for
+staging.delta.chat, and linked to it in sites-enabled to activate it.  Then I
+executed certbot to create a Let's Encrypt cert for it.
+
+```
+sudo cp delta.chat staging.delta.chat
+sudo vim staging.delta.chat 
+sudo ln -rs /etc/nginx/sites-available/staging.delta.chat /etc/nginx/sites-enabled/staging.delta.chat
+sudo certbot --nginx
+```
+
+Then I realized there were javascript redirects in
+/var/www/html/_site/index.html which_ were giving me a hard time. I wanted to
+debug them on staging.delta.chat, so I did the following:
+
+```
+cp -r /var/www/html/_site /var/www/html/staging
+sed -ie "s/html\/_site/html\/staging/g" /etc/nginx/sites-available/staging.delta.chat
+sudo service nginx reload
+```
+
+Now I could comment out the js redirects in /var/www/html/_site/index.html and_
+could debug the nginx redirects properly.
+
+Debugging was a pain, but after 2 hours I got most of the test cases working.
+I committed the changes to etckeeper and copied the file to this repository.
 
