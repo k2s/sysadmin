@@ -38,7 +38,7 @@ server {
 	}
 
 	location @redirect {
-		return 301 https://delta.chat/en/download;
+		return 301 https://delta.chat/download;
 	}
 
     listen [::]:443 ssl ipv6only=on; # managed by Certbot

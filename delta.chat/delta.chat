@@ -61,52 +61,52 @@ server {
 
 	server_name delta.chat; 
 
-#       location = / {
-#          # $lang_sup holds comma separated languages supported by site
-
-#          set $ngx_html_path /var/www/html/_site;
-#          set $lang_sup "en,sk,ca,de,es,fr,it,nb,pl,pt,ru,sq,uk";
-#          set_by_lua_file $lang /etc/nginx/lang.lua $lang_sup;
-#          if ($pref_lang) {
-#             set $lang $pref_lang;
-#          }
-#          add_header Set-Cookie lang=$lang;
-#          rewrite (.*) $scheme://$server_name/$lang$1i$request_uri;
-#       }
-#
-
-
-# 	location ~ /(?!(/ca/|/de/|/en/|/es/|/fr/|/it/|/nb/|/pl/|/pt/|/ru/|/sq/|/uk/)) {
-#	    rewrite_by_lua '
-#		function Set (list)
-#		    local set = {}
-#		    for _, l in ipairs(list) do set[l] = true end
-#		    return set
-#		end
-#		local supported = Set {"ca","de","en","es","fr","it","nb","pl","pt","ru","sq","uk"}
-#	        for lang in (ngx.var.http_accept_language .. ","):gmatch("([^,]*),") do
-#                   for _,translated in pairs(supported) do
-#                       if string.sub(lang, 0, 2) == translated then
-#		            ngx.redirect("/"..translated.."/")
-#		        end
-#		    end
-#	        end
-#	        ngx.redirect("/en/")
-#	    ';
-#	}
-
-#	location ~ [^(/ca/|/de/|/en/|/es/|/fr/|/it/|/nb/|/pl/|/pt/|/ru/|/sq/|/uk/)](download|blog|changelog) {
-#	location /download {
-    		# Language redirect
-#   		return 301 https://$server_name/$lang$request_uri;
-#	}
-
-#	location ~ (/ca/|/de/|/en/|/es/|/fr/|/it/|/nb/|/pl/|/pt/|/ru/|/sq/|/uk/) {
  	location / {
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
-		try_files $uri $uri/ $uri.html =404;
+		try_files $uri $uri/ $uri.html @lang;
 	}
+
+	location = / {
+		try_files $uri. @lang;
+	}
+
+
+  	location @lang {
+	    default_type 'text/plain';
+ 	    rewrite_by_lua '
+		-- list of supported languages to iterate through
+ 		function Set (list)
+ 		    local set = {}
+ 		    for _, l in ipairs(list) do set[l] = true end
+ 		    return set
+ 		end
+ 		local supported = Set {"ca","de","en","es","fr","it","nb","pl","pt","ru","sq","uk"}
+		-- if no language header is set, just return english
+		if string.find(ngx.var.request_uri, "en/en") then
+		    return ngx.exit(ngx.HTTP_NOT_FOUND)  -- 404 to stop redirect loop
+                else
+ 		    if not ngx.var.http_accept_language then
+ 	            	ngx.redirect("/en"..ngx.var.request_uri, 301)
+		    end
+         	end
+		-- check whether lang appears twice to return 404 for redirect loops
+ 	        for lang in (ngx.var.http_accept_language .. ","):gmatch("([^,]*),") do
+		    if string.find(ngx.var.request_uri, lang.."/"..lang) then
+			return ngx.exit(ngx.HTTP_NOT_FOUND)
+		    end
+		end
+		-- search for language in header and redirect if it is supported
+ 	        for lang in (ngx.var.http_accept_language .. ","):gmatch("([^,]*),") do
+                    for supported, translated in pairs(supported) do
+                        if string.sub(lang, 0, 2) == supported then
+ 		            ngx.redirect("https://delta.chat/"..supported..ngx.var.request_uri, 301)
+ 		        end
+ 		    end
+ 	        end
+ 	    ';
+ 	}
+
 
 	# pass PHP scripts to FastCGI server
 	#

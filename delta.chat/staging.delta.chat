@@ -61,34 +61,61 @@ server {
 
 	server_name staging.delta.chat; 
 
- 	location / {
-		# First attempt to serve request as file, then
-		# as directory, then fall back to displaying a 404.
-		try_files $uri $uri/ $uri.html @lang;
+	location = / {
+		autoindex on;
 	}
 
+	location ~ /\d+/ {
+		try_files $uri $uri/index.html $uri.html @lang;
+	}
+
+	location ~ /\D\D/ {
+		# if PR ID was stripped away by broken link (e.g. for blogposts)
+		default_type 'text/plain';
+		rewrite_by_lua '
+			if not ngx.var.http_referer then
+				ngx.redirect("/", 301)
+			end
+			-- extract PR ID from referer
+			prefix = "https://staging.delta.chat/"
+			url = ngx.var.http_referer:match(prefix.."%d+")
+			ngx.redirect(url..ngx.var.request_uri, 301)
+		';
+	}
 
   	location @lang {
 	    default_type 'text/plain';
  	    rewrite_by_lua '
+		-- list of supported languages to iterate through
  		function Set (list)
  		    local set = {}
  		    for _, l in ipairs(list) do set[l] = true end
  		    return set
  		end
  		local supported = Set {"ca","de","en","es","fr","it","nb","pl","pt","ru","sq","uk"}
- 		if not ngx.var.http_accept_language then
- 	            ngx.redirect("/en"..ngx.var.request_uri)
-         	end
- 	        for lang in (ngx.var.http_accept_language .. ","):gmatch("([^,]*),") do
-                    for supported, translated in pairs(supported) do
-                        if string.sub(lang, 0, 2) == supported then
- 		            ngx.redirect("https://staging.delta.chat/"..supported..ngx.var.request_uri)
- 		        end
- 		    end
- 	        end
- 	    ';
- 	}
+		-- split request_uri in two parts
+		prefix = ngx.var.request_uri:match("/%d+/")
+		strend = ngx.var.request_uri:gsub(prefix, "")
+  		-- if no language header is set, just return english
+  		if not ngx.var.http_accept_language then
+   	            ngx.redirect(prefix.."en/"..strend, 301)
+           	end
+  		-- check whether lang appears twice to return 404 for redirect loops
+   	        for lang in (ngx.var.http_accept_language .. ","):gmatch("([^,]*),") do
+  		    if string.find(ngx.var.request_uri, lang.."/"..lang) then
+  			return ngx.exit(ngx.HTTP_NOT_FOUND)
+  		    end
+  		end
+  		-- search for language in header and redirect if it is supported
+  	        for lang in (ngx.var.http_accept_language .. ","):gmatch("([^,]*),") do
+                     for supported, translated in pairs(supported) do
+                         if string.sub(lang, 0, 2) == supported then
+  		            ngx.redirect("https://staging.delta.chat"..prefix..supported.."/"..strend, 301)
+	  	        end
+  		    end
+  	        end
+  	    ';
+  	}
 
 	# deny access to .htaccess files, if Apache's document root
 	# concurs with nginx's one

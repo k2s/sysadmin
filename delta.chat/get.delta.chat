@@ -49,11 +49,11 @@ server {
 	location / {
 		# First attempt to serve request as file, then
 		# as directory, then fall back to displaying a 404.
-		try_files $uri $uri/ $uri.html @redirect;
+		try_files $uri $uri.html @redirect;
 	}
 
 	location @redirect {
-		return 301 https://delta.chat;
+		return 301 https://delta.chat/download;
 	}
 
 	# pass PHP scripts to FastCGI server

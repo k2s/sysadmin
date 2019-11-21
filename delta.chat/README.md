@@ -510,7 +510,7 @@ sudo certbot --nginx
 ```
 
 Then I realized there were javascript redirects in
-/var/www/html/_site/index.html which_ were giving me a hard time. I wanted to
+`/var/www/html/_site/index.html` which were giving me a hard time. I wanted to
 debug them on staging.delta.chat, so I did the following:
 
 ```
@@ -519,9 +519,42 @@ sed -ie "s/html\/_site/html\/staging/g" /etc/nginx/sites-available/staging.delta
 sudo service nginx reload
 ```
 
-Now I could comment out the js redirects in /var/www/html/_site/index.html and_
+Now I could comment out the js redirects in `/var/www/html/_site/index.html` and
 could debug the nginx redirects properly.
 
 Debugging was a pain, but after 2 hours I got most of the test cases working.
 I committed the changes to etckeeper and copied the file to this repository.
+
+Many things didn't work because my browser plugin for emptying the cache was
+not reliable. Several times I made unnecessary changes which didn't work,
+because i thought it was broken when it wasn't. Testing it with curl was very
+helpful, because, curl doesn't have a cache. For some cases I needed to added
+headers manually though, e.g. "Accept-Language:" or "Referer:" headers.
+
+When everything worked, I redirected get.delta.chat & download.delta.chat to
+https://delta.chat/download, which in turn redirects the users to
+https://delta.chat/$lang/download, where $lang is the user's browser language.
+
+### Page Previews
+
+Then I decided to push the preview builds of deltachat-pages pull-requests to
+the new staging page, as I didn't have use for it anymore.
+
+For this I changed the nginx config of staging.delta.chat, so it displays the
+previews. It works like this:
+- On https://staging.delta.chat, you can see a list of all open & closed PRs.
+  You can use the link to access their preview.
+- The link gets displayed in the PR checks as well, through a GitHub action.
+- When a PR gets closed or merged, the preview gets replaced with a file which
+  says that it's outdated and has been removed.
+
+Because the links to the blogposts are not relative to the blog page, but
+absolute, they were always broken in the previews. I created a redirect rule to
+match those absolute links, which repairs the links based on the referer and
+redirects the page visitors to the version of the blgopost they want to visit.
+
+Another nice **to do** would be to create a cron job which deletes the folders
+of the outdated previews, as with the preview desktop builds (see
+https://github.com/deltachat/sysadmin/tree/master/download.delta.chat#delete-builds-from-closed-prs
+)
 
