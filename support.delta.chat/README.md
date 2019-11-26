@@ -3,6 +3,20 @@
 This Discourse instance was set up by compl4xx@systemli.org. If something does
 not work as expected, you can ask them what they did wrong.
 
+## Login
+
+Currently compl4xx, hpk, and pabz have access. If your SSH key is added, you
+can login with this SSH config:
+
+```
+Host support.delta.chat
+	User tech
+	Port 42022
+	IdentityFile /home/$USER/.ssh/$KEY
+```
+
+## Setup
+
 I resized the disk image of this VM to 15 GB.
 
 I then followed this setup guide for discourse, from this point on:
