@@ -558,3 +558,29 @@ of the outdated previews, as with the preview desktop builds (see
 https://github.com/deltachat/sysadmin/tree/master/download.delta.chat#delete-builds-from-closed-prs
 )
 
+## Forum Redirect
+
+Author: missytake@systemli.org
+
+In November 2019 treefit asked me for a redirect from forum.delta.chat to
+support.delta.chat.  I added a CNAME entry for forum.delta.chat at Hetzner:
+
+```
+forum		IN CNAME	delta.chat.
+```
+
+After that, I created an nginx config file for forum.delta.chat which did a
+redirect, linked to it in `/etc/nginx/sites-enabled`, reloaded nginx, and
+created a Let's Encrypt certificate for forum.delta.chat with certbot.
+
+```
+sudo vim forum.delta.chat
+sudo ln -rs /etc/nginx/sites-available/forum.delta.chat /etc/nginx/sites-enabled/forum.delta.chat
+sudo service nginx reload
+sudo certbot --nginx
+```
+
+Now, forum.delta.chat gets redirected to support.delt.chat. The nginx
+configuration file is also in this repository.
+
+
