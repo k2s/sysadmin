@@ -76,6 +76,7 @@ rm -rf /var/discourse/shared/standalone
 cd /
 borg extract backup:support.delta.chat::thebackupyouwant
 /var/discourse/launcher start app
+```
 
 ## Maintenance: storage driver
 
@@ -149,7 +150,7 @@ Over the years, I installed 2 plugins to this discourse instance:
 
 Source: https://meta.discourse.org/t/install-plugins-in-discourse/19157
 
-I installed both plugins by adding a line to `/var/containers/app.yml` with the
+I installed both plugins by adding a line to `/var/discourse/containers/app.yml` with the
 command to clone the plugin into a certain directory, like this:
 
 ```
@@ -167,4 +168,51 @@ The docker_manager plugin came pre-installed.
 
 Afterwards I rebuilt the container with `sudo /var/discourse/launcher rebuild
 app` to actually install it in the container.
+
+### Delta Chat Identity
+
+When we set up login.testrun.org, we installed the oauth2 plugin by adding the
+following line to `/var/discourse/containers/app.yml` and rebuilding the container:
+
+```
+          - git clone https://github.com/discourse/discourse-oauth2-basic.git
+```
+
+#### OAuth2 Settings
+
+Then new settings showed up in the admin settings. We filled out some of them
+like this, others are saved in the secrets repo, protected by git-crypt:
+
+```
+oauth2 enabled: 			true
+oauth2 client id: 			secret
+oauth2 client secret: 			secret
+oauth2 authorize url:			https://login.testrun.org/oauth2/authorize
+oauth2 token url:			https://login.testrun.org/oauth2/token
+oauth2 token url method:		POST
+oauth2 callback user id path:		params.info.userid
+oauth2 callback user info paths:	name:params.info.username
+					email:params.info.email
+oauth2 fetch user details:		false
+oauth2 email verified:			true
+oauth2 button title:			with Deltachat Identity
+oauth2 allow association change:	true
+```
+
+#### custom css
+
+Then we added some stuff to the custom css of the Footer theme:
+
+```
+button.btn-social.oauth2_basic {
+    background: linear-gradient(120deg, #71828a, #4a6069) #159957;
+}
+
+.btn-social {
+    line-height: 1.2; // fix login button text centering
+}
+```
+
+Now it's possible to login with Delta Chat / login.testrun.org into
+https://support.delta.chat :) 
 
