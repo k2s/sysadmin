@@ -87,8 +87,23 @@ It's executed every 10 minutes.
 
 ## Android
 
-we need to create own workflow for this
+Author: missytake@systemli.org
 
+I added a workflow for pushing apk builds to the Android Release checklist:
+https://github.com/deltachat/deltachat-android/blob/master/docs/release-checklist.md#release-new-apk-and-play-store-version
+
+It included a symbolic link at
+`/var/www/html/download/android/deltachat-stable.apk`, which pointed to the
+most recent version and was supposed newly created and pushed with rsync at
+every release.
+
+The first time r10s tried out the commands from the checklist, they failed, so
+I had to make adjustments to the steps on 2019-12-05.
+
+hpk suggested to make the folder listing available as a permalink, instead of
+offering the symbolic link, because "stable" was a misnamer; so I changed the
+nginx config to make that possible, changed the link at
+https://delta.chat/download, and removed the symbolic link.
 
 
 
