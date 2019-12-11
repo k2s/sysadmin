@@ -583,4 +583,10 @@ sudo certbot --nginx
 Now, forum.delta.chat gets redirected to support.delt.chat. The nginx
 configuration file is also in this repository.
 
+## Changelog Redirect
+
+On 2019-12-11, treefit asked for a redirect from https://delta.chat/a5f/ to
+https://github.com/deltachat/deltachat-desktop/blob/master/CHANGELOG.md#09000---2019-12-11.
+
+I added a rewrite rule, reloaded nginx, and committed it to etckeeper.
 

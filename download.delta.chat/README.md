@@ -85,9 +85,15 @@ sudo etckeeper commit "cronjob to delete desktop builds"
 
 It's executed every 10 minutes.
 
-## Android
+### Desktop Autoindex
 
 Author: missytake@systemli.org
+
+On 2019-12-11, treefit asked to be able to browse all released desktop clients.
+I extended the autoindex rule for /desktop/preview/ to /desktop/, reloaded the
+nginx config, and committed it to etckeeper.
+
+## Android
 
 I added a workflow for pushing apk builds to the Android Release checklist:
 https://github.com/deltachat/deltachat-android/blob/master/docs/release-checklist.md#release-new-apk-and-play-store-version
@@ -104,6 +110,4 @@ hpk suggested to make the folder listing available as a permalink, instead of
 offering the symbolic link, because "stable" was a misnamer; so I changed the
 nginx config to make that possible, changed the link at
 https://delta.chat/download, and removed the symbolic link.
-
-
 

@@ -150,6 +150,8 @@ server {
     rewrite /it/support  /it/contribute permanent;
     rewrite /pt/support  /pt/contribute permanent;
     rewrite /ru/support  /ru/contribute permanent;
+
+    rewrite /a5f/ https://github.com/deltachat/deltachat-desktop/blob/master/CHANGELOG.md#09000---2019-12-11;
 }
 
 

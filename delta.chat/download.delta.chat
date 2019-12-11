@@ -33,7 +33,11 @@ server {
 		try_files $uri @redirect;
 	}
 
-	location /desktop/preview/ {
+	# show file listing for folders with deliverable downloads
+	location /desktop/ {
+		autoindex on;
+	}
+	location /android/ {
 		autoindex on;
 	}
 
