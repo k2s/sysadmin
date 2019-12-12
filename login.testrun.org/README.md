@@ -144,3 +144,23 @@ with npm i. I also deleted the 300MB file (see "Avoid full disks", above).
 Finally I had to realize that 5GB were not enough space to build the project,
 and that we needed to move to a bigger machine.
 
+## Unattended Upgrades
+
+On 2019-12-12, I installed unattended-upgrades, so the server is kept up to
+date with the latest Debian upgrades automatically.
+
+```
+sudo apt update
+sudo apt install -y unattended-upgrades apt-listchanges
+```
+
+I configured it to send mail reports to me daily:
+
+```
+sudo sh -c "echo 'Unattended-Upgrade::Mail "root";' >> /etc/apt/apt.conf.d/50unattended-upgrades"
+sudo sh -c 'echo "root: missytake@systemli.org" >> /etc/aliases'
+sudo sh -c "echo unattended-upgrades unattended-upgrades/enable_auto_updates boolean true | debconf-set-selections"
+sudo dpkg-reconfigure -f noninteractive unattended-upgrades
+sudo service unattended-upgrades restart
+```
+
