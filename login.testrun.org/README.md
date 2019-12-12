@@ -144,7 +144,7 @@ with npm i.
 Then pabz did some magic and changed the project so it takes much less build
 space. Now it works fine again.
 
-## Unattended Upgrades
+## Installing Unattended Upgrades
 
 On 2019-12-12, I installed unattended-upgrades, so the server is kept up to
 date with the latest Debian upgrades automatically.
@@ -162,5 +162,18 @@ sudo sh -c 'echo "root: missytake@systemli.org" >> /etc/aliases'
 sudo sh -c "echo unattended-upgrades unattended-upgrades/enable_auto_updates boolean true | debconf-set-selections"
 sudo dpkg-reconfigure -f noninteractive unattended-upgrades
 sudo service unattended-upgrades restart
+```
+
+Then I wanted to commit these changes to etckeeper, when I realized, that we
+didn't have etckeeper on the machine. Yet.
+
+## Installing etckeeper
+
+This was easy:
+
+```
+sudo apt update
+sudo apt install -y etckeeper
+sudo sh -c 'echo "*-" >> /etc/.gitignore'
 ```
 
