@@ -139,10 +139,10 @@ installer, I modified it:
 
 This didn't work yet, I had to re-add the toolchain to cargo: `rustup toolchain
 install nightly-2019-08-13-x86_64-unknown-linux-gnu` and rebuild the service
-with npm i. I also deleted the 300MB file (see "Avoid full disks", above).
+with npm i.
 
-Finally I had to realize that 5GB were not enough space to build the project,
-and that we needed to move to a bigger machine.
+Then pabz did some magic and changed the project so it takes much less build
+space. Now it works fine again.
 
 ## Unattended Upgrades
 
