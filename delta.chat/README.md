@@ -590,3 +590,11 @@ https://github.com/deltachat/deltachat-desktop/blob/master/CHANGELOG.md#09000---
 
 I added a rewrite rule, reloaded nginx, and committed it to etckeeper.
 
+## Adjusting the delta.chat 404 page
+
+On 2020-01-02, I changed the 404 page of delta.chat to
+https://github.com/deltachat/deltachat-pages/blob/master/404.html
+
+I reloaded nginx, committed the changes to etckeeper, and copied the nginx
+config to this repository.
+

@@ -71,6 +71,7 @@ server {
 		try_files $uri. @lang;
 	}
 
+	error_page 404 /404.html;
 
   	location @lang {
 	    default_type 'text/plain';
