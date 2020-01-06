@@ -31,5 +31,8 @@ I also added a Reverse DNS entry for testrun.org in the Hetzner Cloud Network
 settings. You can find them here:
 https://console.hetzner.cloud/projects/311332/servers/83974/network
 
+Finally, I changed the hostname in the `smtpd_banner` to testrun.org, because
+mailbox.org complained about the HELO name.
+
 After this, the spam issue was fixed.
 
