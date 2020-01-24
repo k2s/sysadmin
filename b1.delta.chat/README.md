@@ -11,6 +11,7 @@ I set up an account for
 - missytake
 - treefit
 - jikstra
+- fdroid (without sudo)
 
 I also configured sudo to work without a password as detailed in
 https://github.com/deltachat/sysadmin/blob/master/README.md#sudo
@@ -111,14 +112,27 @@ python3 makebuildserver
 fdroid build --server com.b44t.messenger:571
 ```
 
-### Start the Build Process
+That didn't work out either. So we tried it with their manual setup script, and
+after [this guide instead](https://f-droid.org/en/docs/Build_Server_Setup/).
 
-Then I could start the build container to test it:
+This helped, and after some fiddling, we got it running with Vagrant and
+Virtualbox. Unfortunately it's hard to reproduce and document, but the guide
+should help.
 
-```
-sudo docker run --rm -i --name fdrd -u $(id -u):$(id -g) -v $(pwd):/repo -v /home/missytake/android-ndk-r20b:/repo/ndk fdroid-built build -l -v com.b44t.messenger
-```
+### Build Delta Chat Android with the F-Droid build environment
 
-As long as it's running, you can access its command line with 
-`sudo docker exec -ti fdrd bash`.
+Builds have to be executed by the fdroid user: `sudo su - fdroid`. You should
+also `cd fdroiddata` and `git pull origin master` or `git pull upstream
+master`, depending on which build instructions you want to try out. You can see
+all currently configured remote repositories with `git remote -v`. Add a new
+one with `git remote add new-or-so https://gitlab.com/<username>/fdroiddata`.
+
+Before starting the build, you should make sure the build server isn't running
+already with `vagrant global-status`. If it is, you can destroy it with `cd
+~/fdroiddata/builder && vagrant destroy && cd ..`.
+
+Now take a last look at the metadata file of the deltachat app with `vim
+metadata/com.b44t.messenger.yml` to see which versions are available.
+
+To build the latest version, you can now execute `fdroid build --server -v -l com.b44t.messenger`.
 
