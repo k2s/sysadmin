@@ -598,3 +598,13 @@ https://github.com/deltachat/deltachat-pages/blob/master/404.html
 I reloaded nginx, committed the changes to etckeeper, and copied the nginx
 config to this repository.
 
+## Turn off logging of IP addresses with nginx
+
+When I was translating the privacy policy of delta.chat to english, I realized
+that we don't use netlify anymore, so we have to change it anyway - but also,
+that we still log IP addresses with nginx. We don't need this data and I don't
+want to write it into the privacy policy, so I changed the log format of
+delta.chat and download.delta.chat, so it doesn't collect IP addresses anymore.
+
+I committed the changes to etckeeper and copied the changed nginx configs to this
+repository.
