@@ -98,7 +98,7 @@ process:
 ```
 git checkout master
 npm i
-forever restart 10480
+forever restart $(pgrep node -n)
 ```
 
 ### Avoid full disks
