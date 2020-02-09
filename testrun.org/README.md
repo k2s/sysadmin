@@ -12,7 +12,7 @@ Many users have sudo; passwords are not required.
 Mostly postfix, dovecot, and a static nginx site are running here.
 
 testrun.org offers an API for burner accounts, the code is here:
-https://github.com/deltachat/playground/tree/master/tadm
+https://github.com/deltachat/tadm
 
 Docker is installed, but only used if someone needs it.
 
