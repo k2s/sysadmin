@@ -608,3 +608,42 @@ delta.chat and download.delta.chat, so it doesn't collect IP addresses anymore.
 
 I committed the changes to etckeeper and copied the changed nginx configs to this
 repository.
+
+## Set up bots.delta.chat
+
+### DNS settings
+
+I created the following DNS entries at hetzner.com:
+
+```
+bots                     IN A       37.218.242.41
+bots                     IN AAAA    2a00:c6c0:0:151:5::41
+bot                      IN CNAME   bots.delta.chat.
+staging.bots             IN CNAME   bots.delta.chat.
+staging.bot              IN CNAME   staging.bots.delta.chat.
+```
+
+### Setting up the folders
+
+Then I created the directories on the server, where both bots.delta.chat and staging.bots.delta.chat should be reachable afterwards:
+
+```
+cd /var/www/html/
+sudo mkdir bot
+sudo mkdir bot-staging
+sudo chown jekyll:jekyll bot* -R
+```
+
+### GitHub action to copy it to correct location
+
+
+
+### NGINX
+
+create nginx config for bots + staging
+
+### Let's Encrypt
+
+
+
+
