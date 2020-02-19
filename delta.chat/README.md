@@ -611,9 +611,13 @@ repository.
 
 ## Set up bots.delta.chat
 
+On 2020-02-19, I set up static pages for bots.delta.chat. They are
+automatically generated and pushed from this GitHub repository:
+https://github.com/deltachat-bot/bot-pages/
+
 ### DNS settings
 
-I created the following DNS entries at hetzner.com:
+First I created the following DNS entries at hetzner.com:
 
 ```
 bots                     IN A       37.218.242.41
@@ -631,19 +635,92 @@ Then I created the directories on the server, where both bots.delta.chat and sta
 cd /var/www/html/
 sudo mkdir bot
 sudo mkdir bot-staging
-sudo chown jekyll:jekyll bot* -R
 ```
 
 ### GitHub action to copy it to correct location
 
+The pull request for the GitHub actions is here:
+https://github.com/deltachat-bot/bot-pages/pull/12
 
+I added the following two lines to /etc/cron.d/delete-old-builds, because the
+action can't delete a folder, it can just overwrite the content:
+
+```
+*/10 * * * * root find /var/www/html/staging/ -size 24c | awk '{system("rm -r " $1)}'
+*/10 * * * * root find /var/www/html/bot-staging/ -size 24c | awk '{system("rm -r " $1)}'
+```
+
+#### Secret Management
+
+For the jekyll setup, we need to configure the bot-pages repository so it can
+write to the `/var/www/html/bot` and `/var/www/html/bot-staging` directory on
+the server, which is served to the outside by nginx. 
+
+Everyone in the deltachat-bot GitHub organization theoretically has access to
+this, so I decided not to use the same secret which is already accessible to
+everyone in the deltachat GitHub organization.
+
+So first I added a new user `botkyll` for GitHub to login, without sudo, but
+push rights to `/var/www/html/bot` and `/var/www/html/bot-staging`. I saved the
+password to my personal password manager.
+
+```
+sudo adduser botkyll
+sudo chown botkyll:botkyll /var/www/html/bot* -R
+```
+
+Then I generated a SSH key for botkyll on my local machine.  I also added the
+SSH key of botkyll to `/home/jekyll/.ssh/authorized_keys`, so GitHub can login
+there.
+
+```
+sudo mkdir /home/botkyll/.ssh
+sudo vim /home/botkyll/.ssh/authorized_keys
+sudo chown botkyll:botkyll -R /home/botkyll/.ssh
+```
+
+I also had to limit access of the key to scp and rsync, with the rssh tool.
+I set it up like this:
+
+```
+sudo chsh -s /usr/bin/rssh botkyll
+cd /home/botkyll
+sudo chmod u-w * -R
+sudo chmod u-w .* -R
+sudo vim /etc/rssh.conf
+```
+
+I also added the SSH username & key to the repository secrets, so GitHub is
+able to push to the server.
 
 ### NGINX
 
-create nginx config for bots + staging
+Next I created the NGINX configurations for bots.delta.chat &
+staging.bots.delta.chat:
+
+```
+sudo cp delta.chat bots.delta.chat
+sudo cp staging.delta.chat staging.bots.delta.chat
+sudo vim staging.bots.delta.chat	# adjust config to our needs
+sudo vim bots.delta.chat  		# adjust config to our needs
+sudo ln -s /etc/nginx/sites-available/bots.delta.chat /etc/nginx/sites-enabled/bots.delta.chat
+sudo ln -s /etc/nginx/sites-available/staging.bots.delta.chat /etc/nginx/sites-enabled/staging.bots.delta.chat
+sudo service nginx reload
+```
+
+When it worked in the browser, I committed the changes to etckeeper and copied
+the nginx config files to this repository.
 
 ### Let's Encrypt
 
+Finally I generated Let's Encrypt certificates for the two domains:
 
-
+```
+sudo certbot --nginx
+# 2: bots.delta.chat
+# 2: Redirect all HTTP traffic to HTTPS
+sudo certbot --nginx
+# 3: staging.bots.delta.chat
+# 2: Redirect all HTTP traffic to HTTPS
+```
 
