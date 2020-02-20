@@ -449,6 +449,12 @@ master               180 IN CNAME   delta.chat.
 www                  180 IN CNAME   delta.chat.
 ```
 
+Author: missytake@systemli.org
+
+On 2020-02-20, I was notified that both master.delta.chat and www.delta.chat
+resulted in 403 errors. I adjusted their nginx configs to redirect to
+delta.chat. This resolved the error.
+
 #### Let's Encrypt for www and master
 
 After that, I also had to add Let's Encrypt certificates for www and master. So
