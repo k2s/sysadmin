@@ -730,3 +730,7 @@ sudo certbot --nginx
 # 2: Redirect all HTTP traffic to HTTPS
 ```
 
+## Setting up js.delta.chat
+
+On 2020-02-25, I set up js.delta.chat on this server. For details, see https://github.com/deltachat/sysadmin/tree/master/js.delta.chat
+
