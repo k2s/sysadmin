@@ -707,10 +707,13 @@ staging.bots.delta.chat:
 ```
 sudo cp delta.chat bots.delta.chat
 sudo cp staging.delta.chat staging.bots.delta.chat
-sudo vim staging.bots.delta.chat	# adjust config to our needs
-sudo vim bots.delta.chat  		# adjust config to our needs
+sudo cp get.delta.chat bot.delta.chat
+sudo vim staging.bots.delta.chat	# adjust config to our needs: deliver /var/www/html/bot-staging
+sudo vim bots.delta.chat  		# adjust config to our needs: deliver /var/www/html/bot
+sudo vim bot.delta.chat                 # adjust config to our needs: redirect to bots
 sudo ln -s /etc/nginx/sites-available/bots.delta.chat /etc/nginx/sites-enabled/bots.delta.chat
 sudo ln -s /etc/nginx/sites-available/staging.bots.delta.chat /etc/nginx/sites-enabled/staging.bots.delta.chat
+sudo ln -s /etc/nginx/sites-available/bot.delta.chat /etc/nginx/sites-enabled/bot.delta.chat
 sudo service nginx reload
 ```
 
@@ -727,6 +730,9 @@ sudo certbot --nginx
 # 2: Redirect all HTTP traffic to HTTPS
 sudo certbot --nginx
 # 3: staging.bots.delta.chat
+# 2: Redirect all HTTP traffic to HTTPS
+sudo certbot --nginx
+# 2: bot.delta.chat
 # 2: Redirect all HTTP traffic to HTTPS
 ```
 
