@@ -37,8 +37,6 @@ server {
 	#
 	# include snippets/snakeoil.conf;
 
-	root /var/www/html/get;
-
 	# Add index.php to the list if you are using PHP
 	index index.html index.htm index.nginx-debian.html;
 
@@ -47,12 +45,6 @@ server {
 
 
 	location / {
-		# First attempt to serve request as file, then
-		# as directory, then fall back to displaying a 404.
-		try_files $uri $uri.html @redirect;
-	}
-
-	location @redirect {
 		return 301 https://delta.chat/download;
 	}
 
