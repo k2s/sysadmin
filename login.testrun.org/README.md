@@ -177,3 +177,23 @@ sudo apt install -y etckeeper
 sudo sh -c 'echo "*-" >> /etc/.gitignore'
 ```
 
+## Installing discourse-login-bot instead of login-demo
+
+On 2020-03-17, the https://github.com/deltachat-bot/discourse-login-bot
+repository was far enough that we could deploy it.
+
+First I stopped the running login-demo service with `forever stop $(pgrep node -n)`.
+
+Then I cloned the github repository: `git clone https://github.com/deltachat-bot/discourse-login-bot`
+
+And finally I copied the config from the login-demo bot: `cp .login-dcrc discourse-login-bot/config/local.json`
+
+Now I tried to start the bot:
+
+```
+cd discourse-login-bot
+npm run start
+```
+
+But it threw a Syntax Error. I restarted the login-demo bot for now and opened
+an issue.
