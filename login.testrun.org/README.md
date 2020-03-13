@@ -192,7 +192,7 @@ Now I tried to start the bot:
 
 ```
 cd discourse-login-bot
-npm run start
+npm start
 ```
 
 But it threw a Syntax Error. I restarted the login-demo bot for now and opened
