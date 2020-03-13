@@ -192,6 +192,7 @@ Now I tried to start the bot:
 
 ```
 cd discourse-login-bot
+npm i
 npm start
 ```
 
