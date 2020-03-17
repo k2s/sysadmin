@@ -197,4 +197,73 @@ npm start
 ```
 
 But it threw a Syntax Error. I restarted the login-demo bot for now and opened
-an issue.
+an issue: https://github.com/deltachat-bot/discourse-login-bot/issues/2
+
+@pabzm fixed it a few days later, so I could continue:
+
+```
+git pull origin master
+npm i
+npm start
+```
+
+Then I realized that the discourse-login-bot has a slightly different config
+format; I changed it and ran npm start again.
+
+This time, it started, and I tried it out. But when I clicked on "login with
+Delta Chat", the web server returned "Cannot GET /oauth2/authorize".
+Apparently some routes had changed.
+
+To fix this, I went to the discourse config and changed the authorize URL from
+`https://login.testrun.org/oauth2/authorize` to
+`https://login.testrun.org/authorize`. I did the same with the token URL.
+
+I tried to login again, and scanned the QR code, but this time, after I was
+added to the login group, the web server returned "Bad Request". The
+application log showed:
+
+```
+[3/17/2020, 11:04:28 AM] Request to /authorize
+[3/17/2020, 11:04:28 AM] Request to /authorize
+[3/17/2020, 11:04:28 AM] session contactId:  undefined
+[3/17/2020, 11:04:28 AM] Unauthenticated request, sending login page
+[3/17/2020, 11:04:28 AM] Request to /styles.css
+[3/17/2020, 11:04:28 AM] Request to /requestQR
+[3/17/2020, 11:04:28 AM] new group name: LoginBot group (f3e4)
+[3/17/2020, 11:04:28 AM] new group_id: 10
+[3/17/2020, 11:04:29 AM] Request to /favicon.ico
+[3/17/2020, 11:04:33 AM] Request to /checkStatus
+[3/17/2020, 11:04:33 AM] Looking for new contact in group 10
+[3/17/2020, 11:04:33 AM] otherContacts in group: []
+[3/17/2020, 11:04:38 AM] Request to /checkStatus
+[3/17/2020, 11:04:38 AM] Looking for new contact in group 10
+[3/17/2020, 11:04:38 AM] otherContacts in group: []
+<- here I scanned the QR code ->
+[3/17/2020, 11:04:44 AM] Request to /checkStatus
+[3/17/2020, 11:04:44 AM] Looking for new contact in group 10
+[3/17/2020, 11:04:44 AM] otherContacts in group: [ 10 ]
+[3/17/2020, 11:04:44 AM] Storing contact ID in session
+[3/17/2020, 11:04:44 AM] Request to /authorize
+[3/17/2020, 11:04:44 AM] Request to /authorize
+[3/17/2020, 11:04:44 AM] session contactId:  10
+[3/17/2020, 11:04:44 AM] Authenticated request, calling next()
+[3/17/2020, 11:04:44 AM] Request to /authorize
+[3/17/2020, 11:04:44 AM] Unknown redirect_uri, denying access.
+[3/17/2020, 11:04:45 AM] Group 1 was successfully created and joined by contact 10
+[3/17/2020, 11:04:45 AM] Sending you-may-leave-message to chat 1
+[3/17/2020, 11:04:45 AM] Leaving chat 1
+[3/17/2020, 11:04:45 AM] Deleting chat 1
+```
+
+Then I realized that in the config directory there was still the test.json
+config. It had a conflicting `redirect_uri` value. I removed the file with `rm
+config/test.json` and restarted the application. Then I tried it again. This
+didn't help, so I added a more verbose log message to the code, restarted the
+application, and tried again.
+
+I fixed a small bug in the code, then I encountered the next error; it
+redirected me back to support.delta.chat, saying "Sorry, there was an error
+authorizing your account. Please try again." The URL showed:
+`https://support.delta.chat/auth/failure?message=invalid_credentials&origin=https%3A%2F%2Fsupport.delta.chat%2Flatest&strategy=oauth2_basic`
+
+I opened https://github.com/deltachat-bot/discourse-login-bot/issues/5.
