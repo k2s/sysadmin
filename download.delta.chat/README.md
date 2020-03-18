@@ -111,3 +111,74 @@ offering the symbolic link, because "stable" was a misnamer; so I changed the
 nginx config to make that possible, changed the link at
 https://delta.chat/download, and removed the symbolic link.
 
+## Android Nightlys
+
+On 2020-03-18, I started to setup an automated Android nightly build.
+
+### Initial Build
+
+I used the fdroid user on b1.delta.chat for this, as it's already used for
+building the app. I added it to the `docker` group with `sudo adduser fdroid docker`.
+
+I followed the build instructions on
+https://github.com/deltachat/deltachat-android/#build-using-dockerfile, Docker
+was already installed on the machine. They worked, it generated an apk in
+`/home/fdroid/deltachat-android/build/outputs/apk/gplay/debug/deltachat-gplay-debug-1.2.1.apk`.
+I downloaded it with scp and installed it with `adb install` next to my other 3
+Delta Chat apps, it worked fine.
+
+### Automating the Build
+
+Then I wrote a short build script, which is located at
+`/home/fdroid/build-nightly.sh`.
+
+This script is executed each night at 02:30 AM by the fdroid user in this
+cronjob, which I added to `/etc/cron.d/android-nightly`:
+
+```
+30 2 * * * fdroid /home/fdroid/build-nightly.sh
+```
+
+### Pushing the Build to download.delta.chat
+
+To be able to push nightly builds to download.delta.chat, I generated a new SSH
+key for the fdroid user on b1.delta.chat with `ssh-keygen -t ed25519`. I saved
+the private key in the secrets directory in the otf repo.
+
+Then on download.delta.chat, I added the `android-nightly` user with the
+following command: `sudo adduser android-nightly`. I specified a loooong
+password which is not meant to be used.
+
+I added the ssh public key to `/home/android-nightly/.ssh/authorized_keys`, so
+files could be pushed to this server:
+
+```
+sudo mkdir /home/android-nightly/.ssh
+sudo vim /home/android-nightly/.ssh/authorized_keys
+sudo chown android-nightly:android-nightly -R /home/android-nightly/.ssh
+```
+
+I also had to limit access of the key to scp and rsync, with the rssh tool.
+I set it up like this:
+
+```
+sudo chsh -s /usr/bin/rssh android-nightly
+cd /home/android-nightly
+sudo chmod u-w * -R
+sudo chmod u-w .* -R
+```
+
+And finally I created a directory for the nightly uploads and changed the owner
+to android-nightly:
+
+```
+sudo mkdir /var/www/html/download/android/nightly/
+sudo chown android-nightly:android-nightly /var/www/html/download/android/nightly/
+```
+
+Then I added the rsync command to the script and tried it out - it worked
+marvellous.
+
+From now on, Android Nightly builds can be downloaded from
+https://download.delta.chat/android/nightly/.
+
