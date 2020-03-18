@@ -268,5 +268,18 @@ authorizing your account. Please try again." The URL showed:
 
 I opened https://github.com/deltachat-bot/discourse-login-bot/issues/5.
 
-Then I started the login-demo bot again, and changed the configuration on
-support.delta.chat back so it worked.
+### Bot Deployment & Management
+
+After @pabzm fixed that as well, we could deploy the bot with:
+
+```
+cd discourse-login-bot
+forever start src/index.js
+```
+
+To stop it, you can execute `forever stopall`. To only restart it, 
+`forever restartall`.
+
+To find out where the log file is, or to get other info about the running
+process, execute `forever list`.
+
