@@ -740,3 +740,7 @@ sudo certbot --nginx
 
 On 2020-02-25, I set up js.delta.chat on this server. For details, see https://github.com/deltachat/sysadmin/tree/master/js.delta.chat
 
+## Setting up Nightly Android Builds
+
+On 2020-03-18, I set up nightly android builds on this servers. For details, see https://github.com/deltachat/sysadmin/tree/master/download.delta.chat#android-nightlys
+
