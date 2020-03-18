@@ -267,3 +267,6 @@ authorizing your account. Please try again." The URL showed:
 `https://support.delta.chat/auth/failure?message=invalid_credentials&origin=https%3A%2F%2Fsupport.delta.chat%2Flatest&strategy=oauth2_basic`
 
 I opened https://github.com/deltachat-bot/discourse-login-bot/issues/5.
+
+Then I started the login-demo bot again, and changed the configuration on
+support.delta.chat back so it worked.
