@@ -179,6 +179,91 @@ sudo chown android-nightly:android-nightly /var/www/html/download/android/nightl
 Then I added the rsync command to the script and tried it out - it worked
 marvellous.
 
-From now on, Android Nightly builds can be downloaded from
-https://download.delta.chat/android/nightly/.
+Three problems were left:
+
+- The cronjob wasn't working correctly, and couldn't mail the debug output
+  anywhere, because there was no MTA set up on b1.delta.chat.
+- The script created a lot of containers without removing them afterwards.
+- By using podman instead of docker, it should be possible to run the build
+  without basically root rights - the fdroid user doesn't need those
+  privileges.
+
+### Removing Old Build Containers
+
+First I did an `apt update && apt upgrade -y` to get a recent version of
+docker. Then I removed dangling containers with `docker containers prune`.
+
+Finally I could change the script so it would remove the containers after each
+run.
+
+### Using Podman Instead of Docker
+
+Now I wanted to exchange docker with podman so I could remove fdroid from the
+docker UNIX group.
+
+To install podman, I added a source to the apt list:
+
+```
+. /etc/os-release
+sudo sh -c "echo 'deb http://download.opensuse.org/repositories/devel:/kubic:/libcontainers:/stable/xUbuntu_${VERSION_ID}/ /' > /etc/apt/sources.list.d/devel:kubic:libcontainers:stable.list"
+wget -nv https://download.opensuse.org/repositories/devel:kubic:libcontainers:stable/xUbuntu_${VERSION_ID}/Release.key -O- | sudo apt-key add -
+sudo apt-get update -qq
+sudo apt-get -qq -y install podman
+```
+
+Then I replaced the docker calls in the script with "podman", and copied the
+script to this repository again.
+
+It didn't work initially, so I decided to remove my copy of the
+deltachat-android repository and clone it again. Then I tried it again:
+
+```
+sudo rm ../fdroid/deltachat-android -rf
+git clone https://github.com/deltachat/deltachat-android
+./build-nightly.sh
+```
+
+This produced an error first as well, because there was no build of the
+deltachat-android container existing. I commented it out, as it wasn't needed
+anymore anyway. It didn't help, I just ran into more errors.
+
+Soon I lost patience and thought that the time to solve this was not worth it.
+I redid the changes to the script and uninstalled podman:
+
+```
+sudo rm /etc/apt/sources.list.d/devel\:kubic\:libcontainers\:stable.list
+sudo apt remove podman
+sudo apt update
+```
+
+A new run of the build-nightly.sh script went wrong, because I hadn't used the
+`--recursive` flag when cloning the repository. I fixed it quickly and tried
+again:
+
+```
+rm -rf deltachat-android/
+git clone https://github.com/deltachat/deltachat-android --recursive
+./build-nightly.sh
+```
+
+With ndk-make && gradlew, it didn't work, because gradlew didn't find the SDK.
+This was not a problem with two separate commands, where the build succeed.
+Leaving the problem, that I couldn't add the --rm flag to the first docker run
+command. 
+
+So after the script there was a dangling container. I added another docker rm
+command to remove that container; now the script was good so far, and ran
+without leaving behind any unnecessary containers.
+
+### Fix Cronjob
+
+To get the cronjob output, I followed this quick quide:
+https://www.thegeekstuff.com/2012/07/crontab-log/
+
+Afterwards, the build job ran without problems, and the build was uploaded to
+https://download.delta.chat/android/nightly/2020-03-21/
+
+### Delete Outdated Nightly Builds
+
+tbd
 

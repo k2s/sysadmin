@@ -18,13 +18,11 @@ echo "Building deltachat-android nightly on commit $(git rev-parse HEAD)"
 
 # Build instructions from https://github.com/deltachat/deltachat-android/#build-using-dockerfile
 # Remove the build directory
-docker run -it -v $(pwd):/home/app -w /home/app deltachat-android rm -rf build/
+docker run --rm -it -v $(pwd):/home/app -w /home/app deltachat-android rm -rf build/
 # Build the build container with docker
 docker build . -t deltachat-android --no-cache
-# Prepare the build environment
-docker run -it -v $(pwd):/home/app -w /home/app deltachat-android ./ndk-make.sh
-# Build the apk
-docker run -it -v $(pwd):/home/app -w /home/app deltachat-android ./gradlew assembleDebug
+# Prepare the build environment and Build the apk
+docker run --rm -it -v $(pwd):/home/app -w /home/app deltachat-android ./ndk-make.sh && ./gradlew assembleDebug
 
 echo "Build output at /home/fdroid/deltachat-android/build/outputs/apk/gplay/debug/"
 
