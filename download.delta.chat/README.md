@@ -265,5 +265,15 @@ https://download.delta.chat/android/nightly/2020-03-21/
 
 ### Delete Outdated Nightly Builds
 
-tbd
+Finally, to delete builds older than one week, I created a cronjob on
+download.delta.chat. I added the following line to `/etc/cron.d/delete-old-builds`:
+
+```
+0 3 * * * root find /var/www/html/download/android/nightly/ -mtime +7 -delete
+```
+
+I committed the changes to etckeeper.
+
+Now you can find Android Nightly builds on
+https://download.delta.chat/android/nightly/2020-03-21/ - enjoy!
 
