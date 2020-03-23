@@ -274,6 +274,17 @@ download.delta.chat. I added the following line to `/etc/cron.d/delete-old-build
 
 I committed the changes to etckeeper.
 
-Now you can find Android Nightly builds on
+### Further Improvements
+
+After link2xt added some more suggestions, I made some further improvements to the script:
+
+- pull latest core-master as well
+- proper git clean
+- publish build logs
+- remove docker image after build
+
+### Finished - Android Nightlys Now Available
+
+Now you can find Android Nightly builds and the build logs on
 https://download.delta.chat/android/nightly/2020-03-21/ - enjoy!
 

@@ -136,3 +136,11 @@ metadata/com.b44t.messenger.yml` to see which versions are available.
 
 To build the latest version, you can now execute `fdroid build --server -v -l com.b44t.messenger`.
 
+## Build Android Nightlys
+
+In March 2020, we set up Android Nightly builds, which you can download at
+https://download.delta.chat/android/nightly/.
+
+The setup is documented here:
+https://github.com/deltachat/sysadmin/tree/master/download.delta.chat#android-nightlys
+
