@@ -26,7 +26,6 @@ map $http_accept_language $lang {
      ~es es;
      ~fr fr;
      ~it it;
-     ~nb nb;
      ~pl pl;
      ~pt pt;
      ~ru ru;
@@ -82,7 +81,7 @@ server {
  		    for _, l in ipairs(list) do set[l] = true end
  		    return set
  		end
- 		local supported = Set {"ca","de","en","es","fr","it","nb","pl","pt","ru","sq","uk"}
+ 		local supported = Set {"ca","de","en","es","fr","it","pl","pt","ru","sq","uk"}
 		-- if no language header is set, just return english
 		if string.find(ngx.var.request_uri, "en/en") then
 		    return ngx.exit(ngx.HTTP_NOT_FOUND)  -- 404 to stop redirect loop
@@ -153,7 +152,9 @@ server {
     rewrite /pt/support  /pt/contribute permanent;
     rewrite /ru/support  /ru/contribute permanent;
 
-    rewrite /a5f/ https://github.com/deltachat/deltachat-desktop/blob/master/CHANGELOG.md#09000---2019-12-11;
+    rewrite /a5f/ https://github.com/deltachat/deltachat-desktop/blob/master/CHANGELOG.md#09000---2019-12-12;
+    rewrite /a3e/ https://github.com/deltachat/deltachat-desktop/blob/master/CHANGELOG.md#100---2020-02-22;
+    rewrite /f32/ https://github.com/deltachat/deltachat-desktop/blob/master/CHANGELOG.md#110---2020-03-10;
 }
 
 

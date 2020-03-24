@@ -744,3 +744,12 @@ On 2020-02-25, I set up js.delta.chat on this server. For details, see https://g
 
 On 2020-03-18, I set up nightly android builds on this servers. For details, see https://github.com/deltachat/sysadmin/tree/master/download.delta.chat#android-nightlys
 
+## Removing Norwegian Translation From Delta Chat
+
+After https://github.com/deltachat/deltachat-pages/pull/328 was merged, there
+were also modifications in the nginx config necessary, so the language redirect
+didn't cause 404 errors.
+
+I removed "nb" from the nginx config, reloaded nginx, committed the changes to
+etckeeper, and copied the modified config to this repository.
+
