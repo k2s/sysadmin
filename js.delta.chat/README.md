@@ -30,7 +30,8 @@ For the setup of the server in general, see https://github.com/deltachat/sysadmi
 
 ### Creating folders
 
-First I created the upload folder and created a fitting user:
+First I created the upload folder and gave it to the jekyll user, allowing
+anyone in the deltachat GitHub organization to push to it:
 
 ```
 cd /var/www/html/
