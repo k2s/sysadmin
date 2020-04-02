@@ -1,6 +1,9 @@
 #!/bin/sh
 
-cd /home/fdroid/deltachat-android
+cd /home/fdroid/deltachat-android/jni/deltachat-core-rust
+git reset --hard origin/master
+cd ../..
+git reset --hard origin/master
 
 # Check for changes on GitHub:
 git pull origin master > ../last-pull.txt

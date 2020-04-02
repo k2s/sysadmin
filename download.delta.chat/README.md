@@ -288,3 +288,59 @@ After link2xt added some more suggestions, I made some further improvements to t
 Now you can find Android Nightly builds and the build logs on
 https://download.delta.chat/android/nightly/2020-03-21/ - enjoy!
 
+## Some Fixes to the Android Nightly Build Script
+
+On 2020-04-02, we realized that the last two nightly builds failed.  While
+investigating, I found the following error output in
+`/home/fdroid/cron-output.log`:
+
+```
+   Compiling async-imap v0.2.0
+   Compiling deltachat v1.28.0 (/home/app/jni/deltachat-core-rust)
+error: expected at least one digit in exponent
+  --> src/config.rs:92:9
+   |
+92 | >>>>>>> 3163ef87c6ee406abd17b64dec61c051130af365
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: expected at least one digit in exponent
+   --> src/config.rs:181:9
+    |
+181 | >>>>>>> 3163ef87c6ee406abd17b64dec61c051130af365
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: expected identifier, found `<<`
+  --> src/config.rs:82:1
+   |
+82 | <<<<<<< HEAD
+   | ^^ expected identifier
+
+error: aborting due to 3 previous errors
+
+error: could not compile `deltachat`.
+warning: build failed, waiting for other jobs to finish...
+error: build failed
+```
+
+And when I looked in `/home/fdroid/last-pull.txt`, I found the reason:
+
+```
+Entering 'jni/deltachat-core-rust'
+error: Pulling is not possible because you have unmerged files.
+hint: Fix them up in the work tree, and then use 'git add/rm <file>'
+hint: as appropriate to mark resolution and make a commit.
+fatal: Exiting because of an unresolved conflict.
+Stopping at 'jni/deltachat-core-rust'; script returned non-zero status.
+```
+
+The `git submodule foreach git pull origin master > ../last-pull.txt 2>&1` step
+from the build-nightly.sh script had led to a merge situation in the local
+deltachat-core-rust repository.
+
+To avoid this in the future, I added to `git reset --head origin/master` steps
+to the build-script, removed the docker containers & images, and started
+`build-nightly.sh` again - this time it worked.
+
+Then I copied build-nightly.sh to this repository again, to document the
+changes.
+
