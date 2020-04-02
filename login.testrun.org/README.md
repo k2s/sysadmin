@@ -293,7 +293,7 @@ copy the database from the login-demo bot during migration to
 discourse-login-bot.
 
 The steps to fix this are described at
-https://github.com/deltachat/sysadmin/tree/master/support.delta.chat.
+https://github.com/deltachat/sysadmin/tree/master/support.delta.chat#fixing-the-new-discourse-login-bot
 
 ### Configuring TMUX
 

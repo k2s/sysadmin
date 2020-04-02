@@ -218,14 +218,15 @@ button.btn-social.oauth2_basic {
 Now it's possible to login with Delta Chat / login.testrun.org into
 https://support.delta.chat :) 
 
-#### New discourse-login-bot
+#### Fixing the new discourse-login-bot
 
 During March and April 2020, we replaced the login-demo bot with the
 discourse-login-bot (see
 https://github.com/deltachat/sysadmin/tree/master/login.testrun.org#installing-discourse-login-bot-instead-of-login-demo
-for details).
+for details). During the migration, I forgot to copy the database, which
+resulted in data inconsistencies.
 
-To complete the migration, I first disabled the OAuth2 plugin.
+To complete the migration, I first disabled the OAuth2 plugin again.
 
 Then I changed the `oauth2 callback user id path` from params.info.userid to
 params.info.email, as the new bot doesn't transmit a user ID anymore, and uses
