@@ -180,7 +180,10 @@ sudo sh -c 'echo "*-" >> /etc/.gitignore'
 ## Installing discourse-login-bot instead of login-demo
 
 On 2020-03-17, the https://github.com/deltachat-bot/discourse-login-bot
-repository was far enough that we could deploy it.
+repository was far enough that we could deploy it. **Note:** During this, I
+forgot to copy the database (`~/login-demo/data/db.sqlite`)as well - it turns out that this is very bad. If
+you ever try to repeat these steps, please remember to copy the existing
+database as well for a complete migration.
 
 First I stopped the running login-demo service with `forever stop $(pgrep node -n)`.
 
@@ -282,4 +285,45 @@ To stop it, you can execute `forever stopall`. To only restart it,
 
 To find out where the log file is, or to get other info about the running
 process, execute `forever list`.
+
+### Fixing the Bot deployment
+
+On 2020-04-02, we had to fix the bot deployment, because I had forgot to also
+copy the database from the login-demo bot during migration to
+discourse-login-bot.
+
+The steps to fix this are described at
+https://github.com/deltachat/sysadmin/tree/master/support.delta.chat.
+
+### Configuring TMUX
+
+After that, I did the effort to correctly configure tmux on login.testrun.org
+on the missytake user.
+
+I added the following lines to the .bashrc:
+
+```
+# autostart tmux
+if [ -t 0 -a -z "$TMUX" ]
+then
+        test -z "$(tmux list-sessions)" && exec tmux new -s "$USER" || exec tmux new -A -s $(tty | tail -c +6) -t "$USER"
+fi
+```
+
+And the following lines to ~/.tmux.conf:
+
+```
+set-option -g prefix C-a
+set-option -g aggressive-resize on
+set-option -g mouse on
+set-option -g set-titles on
+set-option -g set-titles-string '#I:#W - "#H"'
+unbind-key C-b
+bind-key ` send-prefix
+bind-key a last-window
+bind-key k kill-session
+```
+
+After that, I logged out and in again to apply the settings and check that they
+work. It worked fine!
 

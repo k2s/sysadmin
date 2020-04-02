@@ -171,6 +171,8 @@ app` to actually install it in the container.
 
 ### Delta Chat Identity
 
+Author: missytake@systemli.org
+
 When we set up login.testrun.org, we installed the oauth2 plugin by adding the
 following line to `/var/discourse/containers/app.yml` and rebuilding the container:
 
@@ -215,4 +217,68 @@ button.btn-social.oauth2_basic {
 
 Now it's possible to login with Delta Chat / login.testrun.org into
 https://support.delta.chat :) 
+
+#### New discourse-login-bot
+
+During March and April 2020, we replaced the login-demo bot with the
+discourse-login-bot (see
+https://github.com/deltachat/sysadmin/tree/master/login.testrun.org#installing-discourse-login-bot-instead-of-login-demo
+for details).
+
+To complete the migration, I first disabled the OAuth2 plugin.
+
+Then I changed the `oauth2 callback user id path` from params.info.userid to
+params.info.email, as the new bot doesn't transmit a user ID anymore, and uses
+the email as unique identifier on the discourse side instead (see
+https://github.com/deltachat-bot/discourse-login-bot/pull/9 for more
+background).
+
+Now I also had to delete the `user_associated_accounts` table from the
+discourse database, to clean up the data we already had, and which was in parts
+corrupted.
+
+First I looked whether there were accounts in the `user_associated_accounts`
+table which had no primary email set to their accounts, which would make them
+unable to login. To do this, I logged in to support.delta.chat via SSH, and
+opened the discourse database in the running docker container. After playing
+around a bit with SQL, pabz came up with 
+`select user_emails.user_id, user_emails.email, user_emails.primary, user_associated_accounts.info from user_associated_accounts left join user_emails on user_associated_accounts.user_id = user_emails.user_id;`
+, which correctly showed that no user in the `user_associated_accounts` table
+would lose the ability to login if we removed the entry.
+
+Then I logged out of the discourse container and ran
+`/var/discourse/backup.sh`, to backup discourse before we delete (maybe)
+valuable data.
+
+After that, I could open the database again and deleted all rows in the
+`user_associated_accounts` table, with `delete from user_associated_accounts
+returning *;`. That worked fine, after that, the table was empty.
+
+Now I activated the OAuth2 app again in the discourse settings. I also switched
+off the `oauth2 email verified` setting, because we wanted to see whether
+https://github.com/deltachat-bot/discourse-login-bot/pull/10 works.
+
+Then I updated the discourse-login-bot on login.testrun.org:
+
+```
+cd discourse-login-bot
+git pull --autostash --rebase  # this command complained that there was a merge conflict when popping the stash and I needed to configure a git user to commit stuff
+git config --global user.name "a"
+git config --global user.email "a@a.a"
+git pull --autostash --rebase
+```
+
+Then I resolved the merge conflict. pabz started the bot in his tmux session
+with `forever start src/index.js`.
+
+Now, as the bot was running again, I tried to login to the forum, but it only
+offered me to create a new account with my email address - suspicious was, that
+the form also said "we will email you to confirm" below my email address.
+
+So I switched on the `oauth2 email verified` setting again, and suddenly
+logging in worked, meaning that
+https://github.com/deltachat-bot/discourse-login-bot/pull/10 didn't work as
+expected.
+
+So finally the discourse-login-bot worked!
 
