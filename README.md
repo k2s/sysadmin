@@ -32,3 +32,10 @@ well.
 All changes in the server config should be tracked with etckeeper. This way,
 others can follow the changes you make. Good commit messages are important.
 
+### Backup & Restore
+
+Right now, there is no general backup solution for everything. Some services
+already have a borgbackup setup, some are reproducible through GitHub actions +
+the documented steps in this repository, and some are not backed up at all.
+This is bound to change in the future.
+
