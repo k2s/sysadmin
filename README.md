@@ -39,3 +39,7 @@ already have a borgbackup setup, some are reproducible through GitHub actions +
 the documented steps in this repository, and some are not backed up at all.
 This is bound to change in the future.
 
+The idea is to have full backups of each server one day, which can be restored
+quickly. borgbackup and Hetzner backup space are probably the best way to do
+so.
+
