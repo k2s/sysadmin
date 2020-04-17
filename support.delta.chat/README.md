@@ -283,3 +283,8 @@ expected.
 
 So finally the discourse-login-bot worked!
 
+## Migration to Hetzner
+
+On 2020-04-17, I migrated the server to Hetzner. The steps are described in
+https://github.com/deltachat/sysadmin/blob/master/backup/README.md#restore-migration-to-hetzner-cloud
+
