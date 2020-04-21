@@ -344,3 +344,22 @@ to the build-script, removed the docker containers & images, and started
 Then I copied build-nightly.sh to this repository again, to document the
 changes.
 
+## More Fixes to the Nightly Build Script
+
+On 2020-04-21, r10s told me that again the nightlies didn't build for a week.
+The issue was an outdated toolchain in the build process, which was only
+updated in the core repo, but not in the Dockerfile of the deltachat-android
+repository. I fixed it:
+https://github.com/deltachat/deltachat-android/pull/1303
+
+While debugging that, I also made some changes to the build script. Most
+important changes:
+
+* The build.log is also uploaded for failed builds The docker container & image
+* are also removed if the script fails, fixing
+  subsequent builds
+* Changed Error handling: before, the whole script exited if any command went
+  wrong. This skipped the docker cleanup, which means the next cronjob failed
+  often. Now, only the other build steps are skipped, and the rest of the script
+  still executes.
+
