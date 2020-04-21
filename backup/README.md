@@ -8,11 +8,11 @@ quickly. We decided to go with borgbackup and Hetzner backup space.
 
 The machines which are backed up there are:
 
-* [ ] page
+* [x] page
 * [ ] login.testrun.org
-* [ ] b1.delta.chat
+* [x] b1.delta.chat
 * [ ] hq4
-* [ ] hq5
+* [x] hq5
 * [x] support.delta.chat
 * [ ] devpi.net
 * [ ] lists.codespeak.net
@@ -335,7 +335,7 @@ Now I also configured a cronjob on page to backup each night:
 
 ```
 chmod 700 /root/backup.sh
-echo "5    3 * * * root /root/backup.sh" > /etc/cron.d/backup
+echo "0 4 * * * root /root/backup.sh" > /etc/cron.d/backup
 service cron reload
 etckeeper commit "cronjob for backup"
 ```
@@ -346,39 +346,262 @@ what's supposed to work after restore?
 * The android nightlys should still be built each night
 * CI jobs should run?
 
-generate backup SSH key
-copy public key to backup server
-create SSH config
-install borgbackup
-do initial backup
-- exclude `/home/ci/ci_builds/`
+First, I generated an SSH keypair (without a passphrase) on the server:
 
-## login.testrun.org
+```
+sudo su
+cd ~
+ssh-keygen -t ed25519 -f .ssh/backup
+```
 
-what's supposed to work after restore?
-generate backup SSH key
-copy public key to backup server
-create SSH config
-install borgbackup
-do initial backup
+Then I added the following line to the `.ssh/authorized_keys` file on the
+backup server:
+
+```
+command="borg serve --restrict-to-path /backups/b1/",restrict ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIO70pJcJoRtJlBZn3tBWkohoItzioTJB0UJsoOrz0FYf root@b1
+```
+
+Now I also created the /root/.ssh/config file on the server, and added the backup
+server:
+
+```
+Host hetzner-backup
+    Hostname u229552.your-storagebox.de
+    User u229552
+    IdentityFile /root/.ssh/backup
+    Port 23
+```
+
+Now I installed borgbackup on the server:
+
+```
+apt update
+apt install -y borgbackup
+```
+
+Then I created a borg repository for trying a file system backup according to
+option 2. I generated a new password for the backup and stored it in my
+personal pass repository, as well as the git secrets in the otf-repo:
+
+```
+ export BORG_PASSPHRASE='secret'
+borg init --encryption=repokey hetzner-backup:backups/b1 --remote-path=borg-1.0
+```
+
+Then I created a new backup script for the hetzner-backup - you can find it at
+/root/backup.sh. For reference, I copied it to this repository.
+
+Now I also configured a cronjob on the server to backup each night:
+
+```
+chmod 700 /root/backup.sh
+echo "0 4 * * * root /root/backup.sh" > /etc/cron.d/backup
+service cron reload
+etckeeper commit "cronjob for backup"
+```
 
 ## hq4
 
 what's supposed to work after restore?
-generate backup SSH key
-copy public key to backup server
-create SSH config
-install borgbackup
-do initial backup
+- apache2
+- mysql ?
+- mail.codespeak.net dovecot postfix
 
-## hq5
+First, I generated an SSH keypair (without a passphrase) on the server:
+
+```
+ssh-keygen -t ed25519 -f .ssh/backup
+```
+
+Then I added the following line to the `.ssh/authorized_keys` file on the
+backup server:
+
+```
+command="borg serve --restrict-to-path /backups/hq4/",restrict ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC11oY42xC7wJ2uWdsT6rNk+ENsQDEp4uTMpKNeKrZL9 root@hq4
+```
+
+Now I also created the /root/.ssh/config file on the server, and added the backup
+server:
+
+```
+Host hetzner-backup
+    Hostname u229552.your-storagebox.de
+    User u229552
+    IdentityFile /root/.ssh/backup
+    Port 23
+```
+
+Now I installed borgbackup on the server:
+
+```
+apt update
+apt install -y borgbackup
+```
+
+That failed, because borgbackup wasn't available in the repos. So I just used
+the pre-compiled binaries from GitHub:
+
+```
+wget https://github.com/borgbackup/borg/releases/download/1.1.11/borg-linux64 -O /usr/local/bin/borg
+#chmod +x /usr/local/bin/borg  # tbd
+```
+
+Then I created a borg repository for trying a file system backup according to
+option 2. I generated a new password for the backup and stored it in my
+personal pass repository, as well as the git secrets in the otf-repo:
+
+```
+ export BORG_PASSPHRASE='secret'
+borg init --encryption=repokey hetzner-backup:backups/hq4
+```
+
+Then I created a new backup script for the hetzner-backup - you can find it at
+/root/backup.sh. For reference, I copied it to this repository.
+
+Now I also configured a cronjob on page to backup each night:
+
+```
+chmod 700 /root/backup.sh
+echo "5 4 * * * root /root/backup.sh" > /etc/cron.d/backup
+service cron reload
+etckeeper commit "cronjob for backup"
+```
+
+## testrun.org
 
 what's supposed to work after restore?
-generate backup SSH key
-copy public key to backup server
-create SSH config
-install borgbackup
-do initial backup
+- dovecot
+- postfix
+- nginx
+- docker?
+- ssh
+- unattended-upgrades
+- zerotier-one
+
+First, I generated an SSH keypair (without a passphrase) on the server:
+
+```
+ssh-keygen -t ed25519 -f .ssh/backup
+```
+
+Then I added the following line to the `.ssh/authorized_keys` file on the
+backup server:
+
+```
+command="borg serve --restrict-to-path /backups/testrun.org/",restrict ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIKpGDAov49uTssB+67CfL29wUF+w+//N5NrZbAs4H4lJ root@hq5
+```
+
+Now I also created the /root/.ssh/config file on the server, and added the backup
+server:
+
+```
+Host hetzner-backup
+    Hostname u229552.your-storagebox.de
+    User u229552
+    IdentityFile /root/.ssh/backup
+    Port 23
+```
+
+Now I installed borgbackup on the server:
+
+```
+apt update
+apt install -y borgbackup
+```
+
+Then I created a borg repository for trying a file system backup according to
+option 2. I generated a new password for the backup and stored it in my
+personal pass repository, as well as the git secrets in the otf-repo:
+
+```
+ export BORG_PASSPHRASE='secret'
+borg init --encryption=repokey hetzner-backup:backups/testrun.org
+```
+Then I created a new backup script for the hetzner-backup - you can find it at
+/root/backup.sh. For reference, I copied it to this repository.
+
+Now I also configured a cronjob on the server to backup each night:
+
+```
+chmod 700 /root/backup.sh
+echo "10 4 * * * root /root/backup.sh" > /etc/cron.d/backup
+service cron reload
+etckeeper commit "cronjob for backup"
+```
+
+## login.testrun.org
+
+what's supposed to work after restore?
+- nginx
+- forever discourse-login-bot
+- ssh
+- unattended-upgrades
+
+First, I generated an SSH keypair (without a passphrase) on the server:
+
+```
+sudo su
+cd ~
+ssh-keygen -t ed25519 -f .ssh/backup
+```
+
+Then I added the following line to the `.ssh/authorized_keys` file on the
+backup server:
+
+```
+command="borg serve --restrict-to-path /backups/login.testrun.org/",restrict ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPyecQH35BnS2Mj3R2dHM4Hw8uIY7/aM5M6U+6Uok8YJ root@login.testrun.org
+```
+
+Now I also created the /root/.ssh/config file on the server, and added the backup
+server:
+
+```
+Host hetzner-backup
+    Hostname u229552.your-storagebox.de
+    User u229552
+    IdentityFile /root/.ssh/backup
+    Port 23
+```
+
+Now I installed borgbackup on the server:
+
+```
+apt update
+apt install -y borgbackup
+```
+
+Then I created a borg repository for trying a file system backup according to
+option 2. I generated a new password for the backup and stored it in my
+personal pass repository, as well as the git secrets in the otf-repo:
+
+```
+ export BORG_PASSPHRASE='secret'
+borg init --encryption=repokey hetzner-backup:backups/login.testrun.org
+```
+
+Then I created a new backup script for the hetzner-backup - you can find it at
+/home/missytake/backup.sh. For reference, I copied it to this repository.
+
+During writing the script, I realized I had to run forever commands as the
+missytake user. So I rewrote the whole script for being run by the missytake
+user, and changed my above steps with the following commands:
+
+```
+mv /root/.ssh/backup* /home/missytake/.ssh/
+mv /root/.ssh/config /home/missytake/.ssh/
+chown missytake:missytake /home/missytake/.ssh/*
+exit
+sed -ie 's/root/home\/missytake/' .ssh/config
+```
+
+Now I also configured a cronjob on the server to backup each night:
+
+```
+chmod 700 /home/missytake/backup.sh
+sudo sh -c 'echo "10 4 * * * missytake /home/missytake/backup.sh" > /etc/cron.d/backup'
+sudo service cron reload
+sudo etckeeper commit "cronjob for backup"
+```
 
 ## devpi.net
 
@@ -387,7 +610,9 @@ generate backup SSH key
 copy public key to backup server
 create SSH config
 install borgbackup
-do initial backup
+initialize repository
+create backup script
+create cronjob
 
 ## lists.codespeak.net
 
@@ -396,5 +621,7 @@ generate backup SSH key
 copy public key to backup server
 create SSH config
 install borgbackup
-do initial backup
+initialize repository
+create backup script
+create cronjob
 
