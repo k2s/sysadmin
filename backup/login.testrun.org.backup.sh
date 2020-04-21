@@ -9,7 +9,7 @@ sudo service nginx stop
 sudo service unattended-upgrades stop
 forever stopall
 # Backup the files to the remote server
-sudo borg create --stats --progress --compression lzma hetzner-backup:backups/login.testrun.org::'backup{now:%Y-%m-%d-%H}' \
+sudo -E borg create --stats --progress --compression lzma hetzner-backup:backups/login.testrun.org::'backup{now:%Y-%m-%d-%H}' \
         /                                    \
         --exclude /home/ci/ci_builds         \
         --exclude /dev                       \

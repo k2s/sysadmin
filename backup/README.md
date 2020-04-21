@@ -582,25 +582,13 @@ borg init --encryption=repokey hetzner-backup:backups/login.testrun.org
 Then I created a new backup script for the hetzner-backup - you can find it at
 /home/missytake/backup.sh. For reference, I copied it to this repository.
 
-During writing the script, I realized I had to run forever commands as the
-missytake user. So I rewrote the whole script for being run by the missytake
-user, and changed my above steps with the following commands:
-
-```
-mv /root/.ssh/backup* /home/missytake/.ssh/
-mv /root/.ssh/config /home/missytake/.ssh/
-chown missytake:missytake /home/missytake/.ssh/*
-exit
-sed -ie 's/root/home\/missytake/' .ssh/config
-```
-
 Now I also configured a cronjob on the server to backup each night:
 
 ```
 chmod 700 /home/missytake/backup.sh
-sudo sh -c 'echo "10 4 * * * missytake /home/missytake/backup.sh" > /etc/cron.d/backup'
-sudo service cron reload
-sudo etckeeper commit "cronjob for backup"
+echo "10 4 * * * missytake /home/missytake/backup.sh" > /etc/cron.d/backup
+service cron reload
+etckeeper commit "cronjob for backup"
 ```
 
 ## devpi.net
