@@ -34,12 +34,10 @@ others can follow the changes you make. Good commit messages are important.
 
 ### Backup & Restore
 
-Right now, there is no general backup solution for everything. Some services
-already have a borgbackup setup, some are reproducible through GitHub actions +
-the documented steps in this repository, and some are not backed up at all.
-This is bound to change in the future.
+We have full backups of each server each night, which can be restored quickly.
+They are done with borgbackup scripts, to a Hetzner backup space.
 
-The idea is to have full backups of each server one day, which can be restored
-quickly. borgbackup and Hetzner backup space are probably the best way to do
-so.
+Restore is only tested for support.delta.chat. You can follow this example if
+you need to restore this or another service:
+https://github.com/deltachat/sysadmin/tree/master/backup#restore-migration-to-hetzner-cloud
 
