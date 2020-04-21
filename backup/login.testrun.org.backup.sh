@@ -28,4 +28,4 @@ sudo service nginx start
 sudo service unattended-upgrades start
 cd /home/missytake/discourse-login-bot/ && forever start src/index.js
 # Delete old backups
-borg prune --keep-daily=7 --keep-weekly=4 hetzner-backup:backups/login.testrun.org
+sudo -E borg prune --keep-daily=7 --keep-weekly=4 hetzner-backup:backups/login.testrun.org
