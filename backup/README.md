@@ -9,7 +9,7 @@ quickly. We decided to go with borgbackup and Hetzner backup space.
 The machines which are backed up there are:
 
 * [x] page
-* [ ] login.testrun.org
+* [x] login.testrun.org
 * [x] b1.delta.chat
 * [ ] hq4
 * [x] hq5
@@ -466,6 +466,18 @@ echo "5 4 * * * root /root/backup.sh" > /etc/cron.d/backup
 service cron reload
 etckeeper commit "cronjob for backup"
 ```
+
+After a day, I realized the cronjob failed, because borg wasn't in $PATH of the
+cronjob. So I changed the cronjob so it looked like this:
+
+```
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+5 4 * * * root /root/backup.sh > /root/backup-cron.log 2>&1
+```
+
+And waited for the next log output.
 
 ## testrun.org
 
