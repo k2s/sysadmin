@@ -327,3 +327,17 @@ bind-key k kill-session
 After that, I logged out and in again to apply the settings and check that they
 work. It worked fine!
 
+## Hardening NGINX
+
+On 2020-04-23, pabz and I were notified that the TLS configuration of
+login.testrun.org was not very optimal.  Both in /etc/nginx/nginx.conf and in
+/etc/letsencrypt/options-ssl-nginx.conf was TLS 1.0 and TLS 1.1 allowed.
+
+So we disallowed it in both config files, and removed the value in nginx.conf,
+as it's overwritten by the let's encrypt config anyway.
+
+pabz also added a "Secure"-flag to the session cookie, and I added an HSTS
+header.
+
+In the end, I committed the changes to etckeeper.
+

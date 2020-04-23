@@ -753,3 +753,15 @@ didn't cause 404 errors.
 I removed "nb" from the nginx config, reloaded nginx, committed the changes to
 etckeeper, and copied the modified config to this repository.
 
+## Hardening NGINX
+
+On 2020-04-23, we were notified that another server still supported TLS 1.0 and
+TLS 1.1. I realized this was also valid for page, and other servers with NGINX.
+Both in /etc/nginx/nginx.conf and in /etc/letsencrypt/options-ssl-nginx.conf
+was TLS 1.0 and TLS 1.1 allowed.
+
+So I disallowed it in both config files, and removed the value in nginx.conf,
+as it's overwritten by the let's encrypt config anyway.
+
+I committed the changes to etckeeper.
+
