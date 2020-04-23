@@ -11,7 +11,7 @@ The machines which are backed up there are:
 * [x] page
 * [x] login.testrun.org
 * [x] b1.delta.chat
-* [ ] hq4
+* [x] hq4
 * [x] hq5
 * [x] support.delta.chat
 * [ ] devpi.net
