@@ -288,3 +288,16 @@ So finally the discourse-login-bot worked!
 On 2020-04-17, I migrated the server to Hetzner. The steps are described in
 https://github.com/deltachat/sysadmin/blob/master/backup/README.md#restore-migration-to-hetzner-cloud
 
+## Footer Theme
+
+Somewhat earlier, I don't remember when, we added a footer to the discourse
+theme, with a privacy policy link.  This was done by creating a custom theme
+called "Footer", adding some extra html + css, and making it the default theme.
+
+Unfortunately, with javascript enabled, you rarely see the footer, only in
+short categories, because scrolling down, just more and more posts are loaded.
+
+On 2020-05-03 I added 3 more links to the footer, the Website, Mastodon, and
+Twitter; mainly to have the forum show as verified on the Mastodon account.
+
+
