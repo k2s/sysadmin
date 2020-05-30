@@ -363,3 +363,16 @@ important changes:
   often. Now, only the other build steps are skipped, and the rest of the script
   still executes.
 
+On 2020-05-30, andrea told me that again the nightlies didn't build for a week. 
+The issue was an outdated toolchain in the build process, which was only
+updated in the core repo, but not in the Dockerfile of the deltachat-android
+repository. I fixed it with a direct commit: 
+https://github.com/deltachat/deltachat-android/commit/6c5446208474f5655a0bb7195d70a43b9509f307
+
+While debugging that, I also made a change to the build script:
+
+* Errors are now written to the build.log as well.
+
+I also changed the Dockerfile in the repository to dynamically get the
+rust-toolchain from the deltachat-core-rust repository. It was hardcoded
+before.
