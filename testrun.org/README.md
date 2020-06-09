@@ -248,52 +248,8 @@ Now that HTTPS was working for x.testrun.org, I could try to generate an
 account via curl. I did so with:
 
 ```
-curl "https://x.testrun.org/new_email?t=1w_96myYfKq1BGjb2Yc&maxdays=7.0"
+curl -X POST "https://x.testrun.org/new_email?t=1w_96myYfKq1BGjb2Yc&maxdays=7.0"
 ```
 
-And received a 405 Method not allowed response. So I generated a QR-code to
-scan with Delta Chat, from this string:
-
-```
-DCACCOUNT:https://x.testrun.org/new_email?t=1w_96myYfKq1BGjb2Yc&maxdays=7.0
-```
-
-When I scanned it, the app asked me if I wanted to "create new e-mail address
-on "x.testrun.org" and log in there?". I pressed okay, and it showed the "One
-moment... (60%)" loading screen, then it showed the following error message:
-
-```
-Cannot login as "tmp.4xkef@x.testrun.org". Please check if the email address
-and the passwort are correct. (no response: code: None, info:
-Some("[AUTHENTICATIONFAILED] Authentication failed."))
-```
-
-When I looked into /home/mailadm/dovecot-users, I saw that a line for
-tmp.4xkef@x.testrun.org *was* added to the account list.
-
-This means I got further than with curl, the app at least got the information
-how the user name should look like. That it didn't work is consistent with my
-previous testing, where I had to specify the mail server as x.testrun.org
-manually and login with the whole email address as login name; which isn't
-possible to specify manually if you create an account from scanning a QR code
-in Delta Chat.
-
-This is a problem which is unlikely to show up in production, but shows that
-burner account servers probably need a provider DB entry to work.
-
-I added two DNS records to help the app with auto-trying server names:
-
-```
-CNAME   imap.x  900     x
-CNAME   smtp.x  900     x
-```
-
-When I created another account from the command line, and didn't specify
-neither the mail server nor the login name, I still got the same error message
-as above, only with a different email address; when I specified the login name,
-but *not* the mail server, logging in worked.
-
-This again leads me to the assumption that x.testrun.org would only work with a
-provider DB entry, which is out of scope for this testing scenario.  Apart from
-that it should work fine.
+This worked, and I could login.
 
