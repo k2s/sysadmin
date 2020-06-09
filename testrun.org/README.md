@@ -200,6 +200,8 @@ mailadm add-user tmp.uhuhu@x.testrun.org
 Then I tried to login to the two accounts with my Delta Chat clients; I had to
 specify `x.testrun.org` as IMAP & SMTP server manually.
 
+#### Test Cases: Which Mails Worked
+
 I exchanged two mails between the two mail accounts; everything worked as
 expected.
 
