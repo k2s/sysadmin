@@ -198,7 +198,8 @@ mailadm add-user tmp.uhuhu@x.testrun.org
 ```
 
 Then I tried to login to the two accounts with my Delta Chat clients; I had to
-specify `x.testrun.org` as IMAP & SMTP server manually.
+specify `x.testrun.org` as IMAP & SMTP server manually, and had to specify the
+whole email address as IMAP login name and as SMTP login name to make it work.
 
 #### Test Cases: Which Mails Worked
 
@@ -222,4 +223,77 @@ Then I tried the same with a different mail server, because I couldn't rely on
 systemli.org flushing their DNS cache; so I wrote a message to
 deltaprovider@aol.com. It arrived quickly; the response from aol.com took a bit
 longer, but arrived as well.
+
+#### Creating TMP accounts per web API
+
+Then I tried creating a QR code via web API; I copied
+/etc/nginx/sites-available/testrun.org to
+/etc/nginx/sites-available/x.testrun.org, changed the server name to
+x.testrun.org, removed the lines to the certificate paths, enabled the config
+with `sudo ln -s /etc/nginx/sites-available/x.testrun.org
+/etc/nginx/sites-enabled/`, and reloaded the nginx service.
+
+Then I appended `x.testrun.org` to `/etc/dehydrated/domains.txt`, and ran
+`dehydrated -c` to generate an extra TLS certificate for x.testrun.org.  I
+readded the lines for the certificate paths, reloaded nginx, and visited
+x.testrun.org, to be greated by a giant dinosaur!  Which was expected, and
+good.
+
+I also restarted the mailadm service with `sudo systemctl restart mailadm`, to
+apply my changes to the config.
+
+#### Testing Burner Account Creation with x.testrun.org
+
+Now that HTTPS was working for x.testrun.org, I could try to generate an
+account via curl. I did so with:
+
+```
+curl "https://x.testrun.org/new_email?t=1w_96myYfKq1BGjb2Yc&maxdays=7.0"
+```
+
+And received a 405 Method not allowed response. So I generated a QR-code to
+scan with Delta Chat, from this string:
+
+```
+DCACCOUNT:https://x.testrun.org/new_email?t=1w_96myYfKq1BGjb2Yc&maxdays=7.0
+```
+
+When I scanned it, the app asked me if I wanted to "create new e-mail address
+on "x.testrun.org" and log in there?". I pressed okay, and it showed the "One
+moment... (60%)" loading screen, then it showed the following error message:
+
+```
+Cannot login as "tmp.4xkef@x.testrun.org". Please check if the email address
+and the passwort are correct. (no response: code: None, info:
+Some("[AUTHENTICATIONFAILED] Authentication failed."))
+```
+
+When I looked into /home/mailadm/dovecot-users, I saw that a line for
+tmp.4xkef@x.testrun.org *was* added to the account list.
+
+This means I got further than with curl, the app at least got the information
+how the user name should look like. That it didn't work is consistent with my
+previous testing, where I had to specify the mail server as x.testrun.org
+manually and login with the whole email address as login name; which isn't
+possible to specify manually if you create an account from scanning a QR code
+in Delta Chat.
+
+This is a problem which is unlikely to show up in production, but shows that
+burner account servers probably need a provider DB entry to work.
+
+I added two DNS records to help the app with auto-trying server names:
+
+```
+CNAME   imap.x  900     x
+CNAME   smtp.x  900     x
+```
+
+When I created another account from the command line, and didn't specify
+neither the mail server nor the login name, I still got the same error message
+as above, only with a different email address; when I specified the login name,
+but *not* the mail server, logging in worked.
+
+This again leads me to the assumption that x.testrun.org would only work with a
+provider DB entry, which is out of scope for this testing scenario.  Apart from
+that it should work fine.
 
