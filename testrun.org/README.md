@@ -137,7 +137,9 @@ I ran `sudo etckeeper vcs diff` to see which files were added from before the
 restore; then I committed the changes to etckeeper with `sudo etckeeper commit
 "restored from backup"`, to be able to reverse them if things didn't work.
 
-### Services which need to work after restore
+### Testing whether the migration worked
+
+#### Services which need to work after restore
 
 Now I wanted to test the functionality of testrun.org:
 
@@ -147,10 +149,17 @@ Now I wanted to test the functionality of testrun.org:
 - nginx: testrun.org reachable, apk-1.9.4-debug downloadable
 - etckeeper: keep history?
 
+### Initial tests with /etc/hosts
+
 So I first added the IP of the new server as adress for testrun.org to my local
 /etc/hosts file, and wrote a mail from one testrun.org account to another, with
 the desktop client on my laptop; the mail appeared in /var/log/mail/mail.log,
-and was properly received in my desktop client with the second account.
+and was properly received in my desktop client with the second account, a
+temporary account.
+
+When I replied with the temporary account, the email was sent immediately as
+well, but my non-temp account didn't receive it.  In thunderbird it was shown
+in the inbox folder, but "Loading Message..." never really completed.
 
 The zerotier-one service was running, so I assumed it worked correctly. I don't
 know the service well enough to conduct further tests; it doesn't seem very
@@ -161,4 +170,54 @@ https://testrun.org/deltachat-fat-debug-1.9.4.apk were working.
 
 The etckeeper history was visible with `etckeeper vcs log`, so everything
 seemed to work fine :)
+
+### Testing with x.testrun.org
+
+#### Configuring Server as x.testrun.org
+
+Now I wanted to test whether the restored server could interact with others as
+a mailserver. So I registered the following 2 DNS entries:
+
+```
+A       x       900     176.9.92.144
+MX      x       900     x.testrun.org
+```
+
+And added ` x.testrun.org` to the `virtual_mailbox_domains` config key in
+`/etc/postfix/main.cf`.
+
+I also wanted to create two test accounts to try it out, so I logged into the
+mailadm user, changed the `/home/mailadm/mailadm.config` so x.testrun.org
+addresses were possible, and created two addresses:
+
+```
+sudo su -l mailadm
+vim mailadm.config  # changed line 4 & 5 "s/testrun.org/x.testrun.org"
+mailadm add-user tmp.aiaud@x.testrun.org
+mailadm add-user tmp.uhuhu@x.testrun.org
+```
+
+Then I tried to login to the two accounts with my Delta Chat clients; I had to
+specify `x.testrun.org` as IMAP & SMTP server manually.
+
+I exchanged two mails between the two mail accounts; everything worked as
+expected.
+
+Then I wrote a mail to asdf@testrun.org, an existing account on the old server;
+it arrived in thunderbird, but not in Delta Chat.
+
+Then I wrote two messages to missytake@systemli.org; the first didn't arrive
+(probably due to greylisting), the second arrived both in thunderbird, and in
+Delta Chat. When I tried to answer, I received a mailer daemon message, that
+systemli.org failed to look up "x.testrun.org.testrun.org". Apparently I had
+set the MX entry wrong; I changed it to:
+
+```
+MX      x       900     x
+```
+
+Then I tried the same with a different mail server, because I couldn't rely on
+systemli.org flushing their DNS cache; so I wrote a message to
+deltaprovider@aol.com. It arrived quickly; the response from aol.com took a bit
+longer, but arrived as well.
 
