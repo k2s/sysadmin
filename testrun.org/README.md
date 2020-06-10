@@ -253,3 +253,58 @@ curl -X POST "https://x.testrun.org/new_email?t=1w_96myYfKq1BGjb2Yc&maxdays=7.0"
 
 This worked, and I could login.
 
+### Final Migration
+
+Finally, some night on the old machine, I did one last backup, and after that
+stopped the nginx, dovecot, and postfix service.
+
+Then I extracted that last backup on the new machine:
+
+```
+borg extract -v --list hetzner-backup:backups/testrun.org::backup2020-06-10-02 -e boot -e vmlinuz -e initrd.img -e etc/network -e etc/initramfs-tools -e etc/kernel -e etc/grub.d -e etc/modprobe.d -e etc/resolvconf -e etc/sysctl.d -e etc/debian_version -e etc/fstab -e etc/resolv.conf
+```
+
+Finally I ran a quick rsync to copy the mails to the new server:
+
+```
+cd /home/vmail
+rsync -r -p -P testrun.org:/home/vmail/testrun.org .
+chown vmail:vmail testrun.org -R
+```
+
+#### Changing DNS
+
+While the restore job was running, I switched the testrun.org DNS records so
+they pointed to the new server:
+
+```
+A       @       900     176.9.92.144
+A       tox     900     176.9.92.144
+AAAA    @       900     2a01:4f8:151:338c::2
+```
+
+A codespeak.net record also pointed to the old machine, so I changed it:
+
+```
+A       @       1800    176.9.92.144
+```
+
+As with merlinux.de:
+
+```
+A       @       1800    176.9.92.144
+```
+
+#### Final tests
+
+After that I restarted nginx, postfix, and dovecot, and repeated the tests I
+previously did with x.testrun.org. Everything went fine:
+
+- creating a temporary account via the mailadm CLI tool
+- writing mails from compl4xx@testrun.org to that new temp account
+- receiving mails with a testrun.org account
+- writing to and receiving mails from a systemli.org account (though the first
+  message often got lost or delayed, probably due to greylisting or so)
+- creating a burner account by scanning a QR code
+- creating a burner account with a curl request
+

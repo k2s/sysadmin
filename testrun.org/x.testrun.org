@@ -1,0 +1,53 @@
+
+server {
+    listen 80;
+
+    server_name x.testrun.org;
+
+    location /.well-known/acme-challenge {
+        alias /var/lib/dehydrated/acme-challenges;
+    }
+    location / {
+               return 302 https://$http_host$request_uri;
+    }
+}
+
+server {
+    server_name x.testrun.org;
+    # SSL configuration
+    #
+    listen 443;
+    listen [::]:443;
+    ssl_certificate /etc/dehydrated/certs/x.testrun.org/fullchain.pem;
+    ssl_certificate_key /etc/dehydrated/certs/x.testrun.org/privkey.pem;
+
+    access_log /var/log/nginx/testrun-access.log;
+    error_log /var/log/nginx/testrun-error.log;
+    root /var/www/testrun.org/;
+
+
+    #location /newtmpuser {
+    #    proxy_pass http://localhost:3960/newtmpuser;
+    #}
+
+    location /new_email {
+        proxy_pass http://localhost:3961/new_email;
+    }
+
+    location ~ ^/~(.+?)(/.*)?$ {
+        alias /home/$1/public_html$2;
+        autoindex on;
+    }
+    location / {
+        try_files $uri $uri.html @rewrites;
+    } 
+    location /.well-known/autoconfig/mail/config-v1.1.xml {
+        alias /etc/well-known/autoconfig-mail-testrun.xml;
+    }
+
+    location @rewrites {
+        rewrite ^/tox(/)?$ https://tox.readthedocs.org/;
+        rewrite ^/tox/(.*)$ https://tox.readthedocs.org/$1;
+    }
+}
+
