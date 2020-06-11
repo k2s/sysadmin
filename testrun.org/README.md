@@ -308,3 +308,12 @@ previously did with x.testrun.org. Everything went fine:
 - creating a burner account by scanning a QR code
 - creating a burner account with a curl request
 
+#### Different rsync command
+
+As there were complaints about old mails which arrived a second time, I tried
+again with a different rsync command:
+
+```
+rsync -aPv testrun.org:/home/vmail/testrun.org .
+```
+
