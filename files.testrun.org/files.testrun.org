@@ -1,0 +1,29 @@
+server {
+    server_name files.testrun.org;
+    # SSL configuration
+    #
+    listen 443 ssl;
+    listen [::]:443;
+
+    access_log /var/log/nginx/testrun-access.log;
+    error_log /var/log/nginx/testrun-error.log;
+    root /var/www/files.testrun.org/;
+
+    location / {
+	perl upload::handle;
+    }
+
+    ssl_certificate /etc/letsencrypt/live/files.testrun.org/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/files.testrun.org/privkey.pem; # managed by Certbot
+}
+server {
+
+	listen 80;
+	listen [::]:80;
+
+	server_name files.testrun.org;
+        if ($host = files.testrun.org) {
+	        return 301 https://$host$request_uri;
+	}
+}
+
