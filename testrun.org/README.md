@@ -378,3 +378,22 @@ prune job.
 
 Finally I ran `sudo systemctl disable mailadm` to disable it completely.
 
+### Added .bashrc
+
+After that I noticed that when I logged into mailadm2 with `sudo -u mailadm2
+bash` and ran `mailadm config`, it reported that the database was not
+initialized. Apparently it tried to use the DB at /home/mailadm/mailadm.db
+instead of the new one.
+
+So I added the following two lines to /var/lib/mailadm2/.bashrc:
+
+```
+source ~/venv/bin/activate
+export MAILADM_DB=$HOME/mailadm.db
+```
+
+I also ran `sudo usermod --shell /bin/bash mailadm2` to set bash as default
+shell for mailadm2.
+
+I logged out and in again, and now it worked.
+
