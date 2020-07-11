@@ -30,8 +30,11 @@ server {
     #    proxy_pass http://localhost:3960/newtmpuser;
     #}
 
+    #location /new_email {
+    #    proxy_pass http://localhost:3961/new_email;
+    #}
     location /new_email {
-        proxy_pass http://localhost:3961/new_email;
+        proxy_pass http://localhost:3691/;
     }
 
     location ~ ^/~(.+?)(/.*)?$ {

@@ -18,6 +18,8 @@ Docker is installed, but only used if someone needs it.
 
 ## Mail Server Administration
 
+### SPF
+
 End of December 2019 we noticed that some mails to mailbox.org don't arrive, if
 the recipient's Spam filter is set to `strict`.
 
@@ -316,4 +318,63 @@ again with a different rsync command:
 ```
 rsync -aPv testrun.org:/home/vmail/testrun.org .
 ```
+
+## Migrating User Authentication to a Database
+
+First I copied the userdb away as a backup:
+
+```
+cp /home/vmail/userdb /root/migration_backup/
+cp /etc/postfix/virtual_mailboxes /root/migration_backup/
+sudo -iu mailadm
+mailadm prune
+```
+
+We also cleaned up some users in `/etc/postfix/virtual_mailboxes` and
+`/etc/dovecot/?`.
+
+### Installing mailadm tool for mailadm2
+
+We decided to use a new user for the new mailadm setup. So we followed the
+steps in https://mailadm.readthedocs.io/en/latest/#quickstart by first cloning
+the https://github.com/deltachat/mailadm repository, and then changing some
+config values in `install_mailadm.sh`.
+
+We had to install dovecot-sqlite and had to upgrade all dovecot packages to the
+state of stretch-backports (1:2.3.4.1-5+deb10u1~bpo9+1).
+
+hpk then fixed some issues we stumbled upon, for details see
+https://github.com/deltachat/mailadm/pull/16.
+
+### Migrating old authentication files to mailadm2 database
+
+The old mailadm bot saved the authentication in 3 files:
+`/home/mailadm/userdb`, `/home/mailadm/postfix-users`,
+`/home/mailadm/dovecot-users`.
+
+I wrote a quick python script to migrate the entries from these files to the
+`/var/lib/mailadm2/mailadm.db` database (you can find it in this repository.
+
+Then I ran it:
+
+```
+cd /var/lib/mailadm2
+sudo cp mailadm.db mailadm.db.backup
+cd ~
+sudo ./migrate-to-db.py
+```
+
+After running the script, the db had 779 users entries.
+
+### Switching off the old mailadm in NGINX
+
+Now I switched off the old route to `localhost:3961/new_email`, and added a new
+one to localhost:3691, where mailadm2 listens.
+
+### Switching off the old mailadm completely
+
+I checked that no cronjobs were running for the old mailadm, e.g. no mailadm
+prune job.
+
+Finally I ran `sudo systemctl disable mailadm` to disable it completely.
 
