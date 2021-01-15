@@ -1,4 +1,6 @@
-# notifications.testrun.org
+# notifications.delta.chat
+
+(Originally notifications.testrun.org)
 
 Authors: missytake@systemli.org and janek@merlinux.eu
 
@@ -139,4 +141,58 @@ Finally we committed the changes to etckeeper with `etckeeper commit "Setting
 up notifications.testrun.org". The user creation is not included in this commit
 though.
 
+## Changed domain to notifications.delta.chat
+
+On 2021-01-15 we realized that it makes more sense to run this service as
+notifications.delta.chat, as it actually *is* a centralized service, and can't
+be decentralized (without Apple changing their notification delivery scheme).
+
+### DNS Changes
+
+Author: missytake@systemli.org
+
+So first I created notifications.delta.chat A and AAAA records:
+
+```
+A	notifications	176.9.92.144		3600
+AAAA	notifications	2a01:4f8:151:338c::2	3600
+```
+
+Then deleted the A & AAAA records for notifications.testrun.org and instead
+created a CNAME record pointing to notifications.delta.chat:
+
+```
+CNAME notifications	notifications.delta.chat	86400
+```
+
+### Change NGINX configuration
+
+Then I changed the NGINX configuration:
+
+```
+sudo mv /etc/nginx/sites-enabled/notifications /etc/nginx/sites-available/notifications.delta.chat
+sudo vim /etc/nginx/sites-available/notifications.delta.chat
+```
+
+I changed every mention of notifications.testrun.org to
+notifications.delta.chat. Then I commented out the `ssl_certificate` and
+`ssl_certificate_key` lines, because nginx would fail to reload before I
+changed the dehydrated/Let's Encrypt configuration.
+
+Now I activated the new configuration and reloaded the service, so I could
+continue with Let's Encrypt:
+
+```
+sudo ln -s /etc/nginx/sites-available/notifications.delta.chat /etc/nginx/sites-enabled/notifications.delta.chat
+sudo service nginx reload
+```
+
+### Create new Let's Encrypt certificate
+
+Then I changed `notifications.testrun.org` to `notifications.delta.chat` in
+`/etc/dehydrated/domains.txt`, and ran `sudo dehydrated -c` to generate an
+extra TLS certificate for notifications.delta.chat. I readded the
+`ssl_certificate` and `ssl_certificate_key` lines to the nginx config, reloaded
+nginx, and tested it with `curl -Li http://notifications.delta.chat`. The
+results were as expected.
 
