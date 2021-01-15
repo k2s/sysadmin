@@ -196,3 +196,5 @@ extra TLS certificate for notifications.delta.chat. I readded the
 nginx, and tested it with `curl -Li http://notifications.delta.chat`. The
 results were as expected.
 
+Finally I committed the changes to etckeeper with `sudo etckeeper commit
+"Changed notifications.testrun.org to notifications.delta.chat"`.
