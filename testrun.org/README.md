@@ -397,3 +397,82 @@ shell for mailadm2.
 
 I logged out and in again, and now it worked.
 
+## Upgrade to Debian 10
+
+Authors: missytake@systemli.org & janek@merlinux.eu
+
+On 2020-01-18, we upgraded testrun.org from debian stretch to buster (debian 10
+current stable release) and deployed TLSv1.3.
+
+We will use this guide:
+https://linuxconfig.org/how-to-upgrade-debian-9-stretch-to-debian-10-buster
+
+We searched for third-party sources with `aptitude search '~i(!~ODebian)'`
+There's zerotier-one installed which should also be upgraded to debian buster,
+but isn't a priority for us, because it came from an earlier installation.
+
+Before the upgrade, we checked whether the last backup job was successful. To
+check this, we ran `borg list hetzner-backup:backups/testrun.org` as root to
+see the name of the last backup, and then `borg list
+hetzner-backup:backups/testrun.org::backup2021-01-18-04`. This printed the list
+of files which were backed up successfully last night - it looked fine, so we
+proceeded with the backup.
+
+Then we made sure all installed software was upgraded to the newest releases of
+debian 9:
+
+```
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get dist-upgrade
+```
+
+After that we ran `sudo dpkg -C`, `sudo apt-mark showhold` and `dpkg --audit`
+to check whether there were inconsistencies or other problems. They returned
+none.
+
+Then we edited the apt sources:
+
+```
+sudo sed -i 's/stretch/buster/g' /etc/apt/sources.list
+sudo sed -i 's/stretch/buster/g' /etc/apt/sources.list.d/zerotier.list
+sudo sed -i 's/stretch/buster/g' /etc/apt/sources.list.d/rspamd.list
+```
+
+Then we ran `sudo apt update` to check whether all sources had switched to
+buster, and `sudo apt list --upgradable` to learn what packages would be
+upgraded.
+
+We issued the upgrade with `sudo apt upgrade`. It showed us a `less` document
+with changes, but unfortunately we clicked it away too quickly. After that it
+ran through, and notified us of several issues/asked us which config file
+version to keep:
+
+- when upgrading postfix, it told us that several `mua_*_sender_restrictions`
+  were not available anymore. We need to fix this some time later.
+- Also when upgrading bash, it showed us, that the `/etc/bash.bashrc` file was
+  modified. At the end of the file `/usr/sbin` was added to path. We will
+  upgrade to the default file and modify it, when nessecary with `echo "export
+  PATH=/usr/sbin:$PATH" >> /etc/bash.bashrc`
+- in /etc/nginx/nginx.conf the ssl_protocols config option was overwritten by
+  the upgrade.
+- in /etc/ssh/sshd_config the config option `PermitUserEnvironment yes` was
+  overwritten.
+- /etc/kernel/postinst.d/unattended-upgrades was deleted and created again. We
+  used the maintainers version. same for /etc/apt/50unattended-upgrades
+- ! We encountered an error when upgrading /var/run/opendkim: `Line references
+  path below legacy directory /var/run/, updating /var/run/opendkim →
+  /run/opendkim; please update the tmpfiles.d/ drop-in file accordingly.`
+
+While we had a complete meltdown and had to purge and reinstall opendkim, we
+reconfigured opendkim to use inet port 8892 instead of a socket file. We
+committed the changes to etckeeper: `sudo etckeeper commit "complete meltdown
+of opendkim during upgrade, had to reinstall and reconfigure."`
+
+Finally we could run `sudo apt dist-upgrade` and complete the upgrade. Now we
+only had to re-edit the overwritten configs.
+
+In the end I restored the config files which were overwritten by the upgrade,
+and committed it to etckeeper with `sudo etckeeper commit "Restored the config
+options which were overwritten by the upgrade"`.
+
