@@ -476,3 +476,35 @@ In the end I restored the config files which were overwritten by the upgrade,
 and committed it to etckeeper with `sudo etckeeper commit "Restored the config
 options which were overwritten by the upgrade"`.
 
+## Reinstalling mailadm as mailadm2 user
+
+Author: missytake@systemli.org
+
+On 2020-01-19 we realized that because of the upgrade mailadm broke - the
+python version had changed from 3.5 to 3.7.
+
+So I decided to reinstall mailadm. The modified install script still was at
+`/root/mailadm/install_mailadm.sh`.
+
+First I backed up the databases and cleaned up the old installation:
+
+```
+cp /var/lib/mailadm2/mailadm.db .
+cp /var/lib/mailadm2/virtual_mailboxes.db .
+cp /var/lib/mailadm2/virtual_mailboxes .
+sudo systemctl stop mailadm-web.service
+sudo rm /var/lib/mailadm2/venv/ -r
+```
+
+Then I logged in as root with `sudo su -l root && cd mailadm`. I ran `sh
+install_mailadm.sh` to reinstall mailadm with the same config parameters as we
+had chosen in
+https://github.com/deltachat/sysadmin/tree/master/testrun.org#installing-mailadm-tool-for-mailadm2.
+
+In the end I restarted dovecot & postfix.
+
+To test it, I created a temporary account with an existing token, and sent a
+message to myself. It took a few minutes, but in the end it worked. So
+everything fine :)
+
+
