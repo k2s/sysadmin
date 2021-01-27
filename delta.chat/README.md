@@ -768,8 +768,8 @@ I committed the changes to etckeeper.
 ## Adding security backports
 
 On 2020-01-27, a critical vulnerability in sudo was published, "Baron Samedit".
-I patched all our servers - but on delta.chat I noticed that there was
-no new version of sudo available from the repositories. So I added the
+I patched all our servers - but on delta.chat I noticed that there was no new
+version of sudo available from the repositories. So I (wrongly) added the
 following line to /etc/apt/sources.list:
 
 ```
@@ -777,5 +777,10 @@ deb http://security.debian.org/debian-security buster/updates main contrib non-f
 ```
 
 After that I ran `sudo apt update && sudo apt upgrade` to patch the
-vulnerability.
+vulnerability. But it didn't upgrade sudo, and when I tried to do `sudo apt
+upgrade sudo`, it showed broken packages.
 
+Then I realized that I accidentally added the buster upgrades, not stretch,
+which would be debian 9. So I corrected every mention of `buster` in
+/etc/apt/sources.list to `stretch` and redid `sudo apt update && sudo apt
+upgrade -y`. After that, `apt policy sudo` showed the correct version number.
