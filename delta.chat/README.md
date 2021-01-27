@@ -765,3 +765,17 @@ as it's overwritten by the let's encrypt config anyway.
 
 I committed the changes to etckeeper.
 
+## Adding security backports
+
+On 2020-01-27, a critical vulnerability in sudo was published, "Baron Samedit".
+I patched all our servers - but on delta.chat I noticed that there was
+no new version of sudo available from the repositories. So I added the
+following line to /etc/apt/sources.list:
+
+```
+deb http://security.debian.org/debian-security buster/updates main contrib non-free
+```
+
+After that I ran `sudo apt update && sudo apt upgrade` to patch the
+vulnerability.
+
