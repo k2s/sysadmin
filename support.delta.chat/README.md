@@ -300,4 +300,69 @@ short categories, because scrolling down, just more and more posts are loaded.
 On 2020-05-03 I added 3 more links to the footer, the Website, Mastodon, and
 Twitter; mainly to have the forum show as verified on the Mastodon account.
 
+## Upgrading docker setup manually
+
+On 2021-02-05, I tried to upgrade the docker setup in the web interface.
+Unfortunately, it didn't finish. So I just restarted the container and let it
+be.
+
+Every day since then, the forum crashed once a day, so 2 days later I decided
+to upgrade it manually:
+
+```
+cd /var/discourse
+sudo git pull
+sudo ./launcher rebuild app
+```
+
+This prompted me with the possibility to free up space:
+
+```
+WARNING: We are about to start downloading the Discourse base image
+This process may take anywhere between a few minutes to an hour, depending on your network speed
+
+Please be patient
+
+2.0.20201221-2020: Pulling from discourse/base
+6ec7b7d162b2: Pull complete
+488a5181297e: Pull complete
+Digest: sha256:e181dd9046cc293b10c5b29bbc21c5aa8b939ba5f0c500da4a9e952ed0b5195d
+Status: Downloaded newer image for discourse/base:2.0.20201221-2020
+docker.io/discourse/base:2.0.20201221-2020
+You have less than 5GB of free space on the disk where /var/lib/docker is located. You will need more space to continue
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1        19G   15G  3,3G  82% /
+
+Would you like to attempt to recover space by cleaning docker images and containers in the system? (y/N)y
+If the cleanup was successful, you may try again now
+```
+
+After that, I ran `sudo ./launcher rebuild app` again. This time it downloaded the image and told me the following in the end:
+
+```
+Upgrade Complete
+----------------
+Optimizer statistics are not transferred by pg_upgrade so,
+once you start the new server, consider running:
+    ./analyze_new_cluster.sh
+
+Running this script will delete the old cluster's data files:
+    ./delete_old_cluster.sh
+-------------------------------------------------------------------------------------
+UPGRADE OF POSTGRES COMPLETE
+
+Old 10 database is stored at /shared/postgres_data_old
+
+To complete the upgrade, rebuild again using:
+
+./launcher rebuild app
+-------------------------------------------------------------------------------------
+
+6aec0338889b9383494b00c8d01b64e4aac2eafc3ceaee03a0f238e0c3b7a7f6
+```
+
+So I ran `sudo ./launcher rebuild app` again. After this, the upgrade was
+complete, and the container was running fine. I opened
+https://support.delta.chat/admin/upgrade just to see that all upgrades had been
+completed.
 
