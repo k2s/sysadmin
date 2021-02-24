@@ -366,3 +366,256 @@ complete, and the container was running fine. I opened
 https://support.delta.chat/admin/upgrade just to see that all upgrades had been
 completed.
 
+## Re-Setup the forum on a new machine
+
+On 2021-02-09, Janek & missytake migrated the forum to a Hetzner VPS. This was
+because the forum crashed basically once a day. As the last migration was quite
+dirty anyway, we decided to do a proper re-setup.
+
+### Basic steps
+
+1. Rent a new hetzner cloud machine
+2. setup: docker firewall etckeeper and update the machine
+3. create new DNS entries
+4. install discourse docker image
+5. migrate the discourse volume
+6. create backup job
+
+### Renting a new VM
+
+Janek clicked around on console.hetzner.cloud to create a new VM. It had the following specs:
+
+- 1 vCPU
+- 2 GB RAM
+- 20 GB disk
+- 2,96 €/month
+- IP: 135.181.200.170
+
+OLD IP:
+95.217.213.142
+
+#### Setup user + tmux
+
+missytake created a user for our common tmux session:
+
+```
+adduser missytake
+adduser missytake sudo
+```
+
+And with `sudoedit /etc/sudoers` missytake added `NOPASSWD: ` before `ALL` to
+the %sudo line, to enable passwordless sudo.
+
+missytake also configured tmux:
+
+```
+sudo apt install git tmux
+curl -sfL https://git.io/chezmoi | sh  # Install chezmoi
+git clone https://git.0x90.space/missytake/chezmoi-server ~/.local/share/chezmoi  # clone the repository
+bin/chezmoi diff
+bin/chezmoi apply
+source ~/.bashrc
+```
+
+Now we had a tmux session to do this admin shit.
+
+#### Installing Docker
+
+Janek updated the server with `apt update` and `apt full-upgrade` and added the
+docker repo to apt-sources and installed it with get.docker.com. Also missytake
+was added to the docker group with `usermod -aG docker missytake`.
+
+### Setup instructions:
+
+Easy setup:
+https://github.com/discourse/discourse/blob/master/docs/INSTALL-cloud.md
+
+Docker install debian:
+```
+curl -sSL https://get.docker.com/ | CHANNEL=stable sh
+systemctl enable docker.service
+systemctl start docker.service
+```
+
+Docker compose:
+```
+curl -L https://github.com/docker/compose/releases/download/$(curl -Ls https://www.servercow.de/docker-compose/latest.php)/docker-compose-$(uname -s)-$(uname -m) > /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+```
+
+### Setup for discourse docker
+
+Clone the repo:
+
+```
+sudo -s
+git clone https://github.com/discourse/discourse_docker.git /var/discourse
+cd /var/discourse
+```
+
+### Getting access to the backup
+
+Author: missytake@systemli.org
+
+First I installed borgbackup with `apt install borgbackup`.
+
+Then I copy-pasted the support.delta.chat backup private SSH key from the old server to the new server and added the hetzner backup server to the SSH config:
+
+```
+vim /root/.ssh/backup
+chmod 600 /root/.ssh/backup
+vim /root/.ssh/config
+```
+
+To the SSH user config, I added:
+
+```
+Host hetzner-backup
+    User u229552
+    Hostname u229552.your-storagebox.de
+    Port 23
+    IdentityFile /root/.ssh/backup
+```
+
+Then I tried to connect to the borg server on the backup machine:
+
+```
+borg list hetzner-backup:backups/support.delta.chat
+```
+
+It asked me for the backup encryption password, which I found in the git crypt
+secrets, and showed me the available backups.
+
+We didn't restore the backup yet, as we wanted to do the setup properly first.
+
+### Domains
+
+Now we had to point the DNS entry to the new machine, so Let's Encrypt would
+allow us to create a certificate. We changed the A entry of support.delta.chat
+to the following:
+
+```
+A              support                    60      135.181.200.170
+```
+
+We also added an AAAA entry:
+
+```
+AAAA         support                  60     2a01:4f9:c011:10dc::1
+```
+
+### Setup Script
+
+Launch the setup script
+```
+./discourse-setup
+```
+
+Enter the variables:
+
+```
+DISCOURSE_HOSTNAME: support.delta.chat
+DISCOURSE_DEVELOPER_EMAILS: missytake@systemli.org'
+DISCOURSE_SMTP_ADDRESS: v128803.kasserver.com
+DISCOURSE_SMTP_PORT: 587
+DISCOURSE_SMTP_USER_NAME: discourse@deltachat.net
+DISCOURSE_SMTP_PASSWORD: s3cr3t
+LETSENCRYPT_ACCOUNT_EMAIL: missytake@systemli.org
+```
+
+The script ran as expected.
+
+### Restoring the backup
+
+Now we could restore the backup with the following command:
+
+```
+borg list backup:support.delta.chat
+cd /
+borg extract -v --list backup:support.delta.chat::backup2021-02-09-22 --exclude var/discourse/shared/standalone/letsencrypt
+```
+
+To reinstall the plugins, we added the following 3 lines to containers/app.yml,
+as described in
+https://github.com/deltachat/sysadmin/tree/master/support.delta.chat#installing-a-plugin
+
+```
+          - git clone https://github.com/discourse/discourse-solved.git
+          - git clone https://github.com/discourse/discourse-sitemap.git
+          - git clone https://github.com/discourse/discourse-oauth2-basic.git
+```
+
+Then we executed `sudo /var/discourse/launcher rebuild app` to install them.
+
+But it didn't work. When the container was restarted, it went into a loop, but
+didn't boot properly.
+
+## Second try.
+
+So we tried again:
+
+```
+rm -rf /var/discourse
+git clone https://github.com/discourse/discourse_docker.git /var/discourse
+cd /var/discourse
+docker kill app
+docker rm app
+./discourse-setup
+```
+
+We entered the variables:
+
+```
+DISCOURSE_HOSTNAME: support.delta.chat
+DISCOURSE_DEVELOPER_EMAILS: missytake@systemli.org'
+DISCOURSE_SMTP_ADDRESS: lists.codespeak.net
+DISCOURSE_SMTP_PORT: 25
+DISCOURSE_SMTP_USER_NAME: delta-noreply
+DISCOURSE_SMTP_PASSWORD: s3cr3t
+LETSENCRYPT_ACCOUNT_EMAIL: missytake@systemli.org
+```
+
+When it was at the rebuilding step, we canceled the process with ctrl+c and
+added the plugins as described above. Then we ran `./launcher rebuild app`
+again. Afterwards the container was running.
+
+### Restore Backup
+
+First missytake logged back into the old forum and created and downloaded a
+backup, like described in
+https://meta.discourse.org/t/create-download-and-restore-a-backup-of-your-discourse-database/122710.
+Then they uploaded that backup to the new server, and restored it via command
+line, like described in
+https://meta.discourse.org/t/restore-a-backup-from-command-line/108034.
+
+Then it was running fine again :) Only emails were somehow disabled for
+non-staff users - we reverted that change.
+
+## etckeeper
+
+On 2021-02-24 I, missytake, realized that etckeeper wasn't installed. I installed it.
+
+## Backup solution
+
+When I saw which restore way had worked in the end, I planned to create yet another
+backup solution. I enabled automated database backups in the web interface, after
+this guide: https://meta.discourse.org/t/configure-automatic-backups-for-discourse/14855
+
+So I changed `backup frequency` to 1 and `maximum backups` to 7. I chose local storage as
+storage provider, which was the default. This means the backups are saved at
+`/var/discourse/shared/standalone/backups/default`. From there, a borgbackup cron job can
+copy them to our backup server, together with the rest of the container.
+
+I copied the backup.sh script from this repository to
+`/var/discourse/backup.sh`, and added the backup password from the git secrets.
+
+Then I ran a test run - it completed fine.
+
+Finally I added the following line to `/etc/cron.d/borgbackup`: 
+
+```
+35 2 * * * root /var/discourse/backup.sh
+```
+
+Now the backup should run nightly.
+
