@@ -1,0 +1,32 @@
+Host sdcold
+	Hostname 95.217.213.142
+	User tech
+	IdentityFile /home/user/.ssh/lefherz
+
+Host page
+	Hostname 37.218.242.41
+
+Host b1.delta.chat
+	User missytake
+	IdentityFile /home/user/.ssh/missytake
+
+Host login.testrun.org
+	User missytake
+	IdentityFile /home/user/.ssh/missytake
+
+Host testrun.org
+
+Host hq6
+        Hostname hq6.merlinux.eu
+        User missytake
+	IdentityFile /home/user/.ssh/missytake
+
+Host sdcnew
+	Hostname 135.181.200.170
+	User missytake
+	IdentityFile /home/user/.ssh/missytake
+
+Host dubby.org
+	User missytake
+	IdentityFile /home/user/.ssh/missytake
+
