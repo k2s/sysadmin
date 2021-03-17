@@ -480,7 +480,7 @@ options which were overwritten by the upgrade"`.
 
 Author: missytake@systemli.org
 
-On 2020-01-19 we realized that because of the upgrade mailadm broke - the
+On 2021-01-19 we realized that because of the upgrade mailadm broke - the
 python version had changed from 3.5 to 3.7.
 
 So I decided to reinstall mailadm. The modified install script still was at
