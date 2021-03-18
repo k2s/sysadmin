@@ -32,6 +32,21 @@ well.
 All changes in the server config should be tracked with etckeeper. This way,
 others can follow the changes you make. Good commit messages are important.
 
+### tmux
+
+To be able to work on things together, we are using tmux. We share a user,
+which automatically starts a tmux session at login, or attaches itself to the
+existing tmux session if there exists one. This happens through these lines in
+.profile:
+
+```
+# autostart tmux
+if [ -t 0 -a -z "$TMUX" ]
+then
+        test -z "$(tmux list-sessions)" && exec tmux new -s "$USER" || exec tmux new -A -s $(tty | tail -c +6) -t "$USER"
+fi
+```
+
 ### Backup & Restore
 
 We have full backups of each server each night, which can be restored quickly.
