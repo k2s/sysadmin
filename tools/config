@@ -4,6 +4,8 @@ Host sdcold
 	IdentityFile /home/user/.ssh/lefherz
 
 Host page
+	User missytake
+	IdentityFile /home/user/.ssh/missytake
 	Hostname 37.218.242.41
 
 Host b1.delta.chat
