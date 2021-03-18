@@ -119,15 +119,13 @@ server {
 }
 
 server {
-        if ($host = notifications.testrun.org) {
-            return 301 https://$host$request_uri;
+        location /.well-known/acme-challenge {
+                alias /var/lib/dehydrated/acme-challenges;
         }
 
         listen 80 ;
         listen [::]:80 ;
         server_name notifications.testrun.org;
-        return 404;
-
 }
 ```
 
@@ -208,3 +206,98 @@ results were as expected.
 
 Finally I committed the changes to etckeeper with `sudo etckeeper commit
 "Changed notifications.testrun.org to notifications.delta.chat"`.
+
+### sandbox.notifications.delta.chat
+
+Authors: missytake@systemli.org & janek@merlinux.eu
+
+On 2021-03-18, we were asked to also deploy a sandbox notifications service for
+debug purposes. We decided to install it right next to the production one.
+
+#### DNS
+
+We created 2 DNS entries for the sandbox service:
+
+````
+A	notifications.sandbox	3600	176.9.92.144
+AAAA	notifications.sandbox	3600	2a01:4f8:151:338c::2
+```
+
+#### systemd 
+
+```
+[Unit]
+Description=Notification Service
+After=syslog.target network.target
+StartLimitIntervalSec=300
+StartLimitBurst=3
+
+[Service]
+WorkingDirectory=/home/notifications
+ExecStart=/home/notifications/notifiers/target/release/notifiers --sandbox --certificate-file /home/notifications/cert.p12 --password "" --topic "chat.delta" --interval 1m --port 9001 --db sandbox.db
+Restart=unless-stopped
+RestartSec=60
+KillSignal=SIGQUIT
+Type=simple
+StandardError=syslog
+NotifyAccess=all
+User=notifications
+Group=notifications
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```
+sudo systemctl daemon-reload
+sudo systemctl restart sandbox.notifications.service
+```
+
+#### NGINX
+
+Janek added an NGINX config to
+`/etc/nginx/sites-available/sandbox.notifications.delta.chat`:
+
+```
+server {
+        server_name sandbox.notifications.delta.chat;
+
+        location / {
+                proxy_pass http://127.0.0.1:9001;
+                proxy_http_version 1.1;
+        }
+
+        listen [::]:443 ssl; # managed by Certbot
+        listen 443 ssl; # managed by Certbot
+        ssl_certificate /etc/dehydrated/certs/sandbox.notifications.delta.chat/fullchain.pem;                                                                           
+        ssl_certificate_key /etc/dehydrated/certs/sandbox.notifications.delta.chat/privkey.pem;                                                                         
+
+}
+
+server {
+        location /.well-known/acme-challenge {
+                alias /var/lib/dehydrated/acme-challenges;
+        }
+
+        listen 80 ;
+        listen [::]:80 ;
+        server_name sandbox.notifications.delta.chat;
+}
+```
+
+We activated it with `sudo ln -s
+/etc/nginx/sites-available/sandbox.notifications.delta.chat
+/etc/nginx/sites-enabled/` and confirmed it with `sudo service nginx reload`.
+
+#### Let's Encrypt
+
+We also added `sandbox.notifications.delta.chat` to
+`/etc/dehydrated/domains.txt`. Then we ran `sudo dehydrated -c` to generate the
+cert.
+
+Then we had a 3-hour debugging breakdown because dehydrated failed the
+challenge at renewing testrun.org. Turns out, our testrun.org port 80
+configuration didn't support ipv6 and nowadays Let's Encrypt uses that. Took us
+hours to figure it out, but a little `listen [::]:80;` in
+`/etc/nginx/sites-available/testrun.org` did the trick.
+
