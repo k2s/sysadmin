@@ -47,6 +47,16 @@ then
 fi
 ```
 
+The escape key is `ctrl+a`. You can quit (detach yourself from the session) by
+first pressing `ctrl+a` and then `d`. Useful commands:
+
+```
+c: create a new tab
+n: switch to the next tab
+p: switch to the previous tab
+d: detach
+```
+
 ### Backup & Restore
 
 We have full backups of each server each night, which can be restored quickly.
