@@ -32,6 +32,11 @@ well.
 All changes in the server config should be tracked with etckeeper. This way,
 others can follow the changes you make. Good commit messages are important.
 
+### unattended-upgrades
+
+We use unattended-upgrades to keep the machines up to date - we didn't change
+the default configuration.
+
 ### tmux
 
 To be able to work on things together, we are using tmux. We share a user,
