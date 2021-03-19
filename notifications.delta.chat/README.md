@@ -218,7 +218,7 @@ debug purposes. We decided to install it right next to the production one.
 
 We created 2 DNS entries for the sandbox service:
 
-````
+```
 A	notifications.sandbox	3600	176.9.92.144
 AAAA	notifications.sandbox	3600	2a01:4f8:151:338c::2
 ```
