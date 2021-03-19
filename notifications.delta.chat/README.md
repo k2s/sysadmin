@@ -227,7 +227,7 @@ AAAA	notifications.sandbox	3600	2a01:4f8:151:338c::2
 
 ```
 [Unit]
-Description=Notification Service
+Description=Sandbox Notification Service
 After=syslog.target network.target
 StartLimitIntervalSec=300
 StartLimitBurst=3
