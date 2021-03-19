@@ -301,3 +301,8 @@ configuration didn't support ipv6 and nowadays Let's Encrypt uses that. Took us
 hours to figure it out, but a little `listen [::]:80;` in
 `/etc/nginx/sites-available/testrun.org` did the trick.
 
+## Viewing the Logs
+
+You can view the logs with `sudo journalctl -u notifications.service` or `sudo
+journalctl -u notifications.service`.
+
