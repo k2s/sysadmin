@@ -31,6 +31,11 @@ map $http_accept_language $lang {
      ~ru ru;
      ~sq sq;
      ~uk uk;
+     ~zh_CN zh_CN;
+     ~tr tr;
+     ~id id;
+     ~gl gl;
+     ~cs cs;
  }
 
 # Default server configuration
@@ -81,7 +86,7 @@ server {
  		    for _, l in ipairs(list) do set[l] = true end
  		    return set
  		end
- 		local supported = Set {"ca","de","en","es","fr","it","pl","pt","ru","sq","uk"}
+ 		local supported = Set {"ca","de","en","es","fr","it","pl","pt","ru","sq","uk", "zh_CN", "tr", "id", "gl", "cs"}
 		-- if no language header is set, just return english
 		if string.find(ngx.var.request_uri, "en/en") then
 		    return ngx.exit(ngx.HTTP_NOT_FOUND)  -- 404 to stop redirect loop

@@ -492,9 +492,9 @@ So now delta.chat is hosted at greenhost.nl.
 
 ### Known Issues
 
-The preview links seem to work mostly fine, but if you want to click on the
+~~The preview links seem to work mostly fine, but if you want to click on the
 blogposts, you only get a link to the blogposts deployed on production. The
-workaround is to paste the commit sha into the URL.
+workaround is to paste the commit sha into the URL.~~ **edit: fixed.**
 
 If you open a Pull Request at https://github.com/deltachat/deltachat-pages/,
 you only get a preview link at the second commit. Background:
@@ -784,3 +784,19 @@ Then I realized that I accidentally added the buster upgrades, not stretch,
 which would be debian 9. So I corrected every mention of `buster` in
 /etc/apt/sources.list to `stretch` and redid `sudo apt update && sudo apt
 upgrade -y`. After that, `apt policy sudo` showed the correct version number.
+
+## Adding more languages
+
+On 2021-03-21, I was notified of
+https://github.com/deltachat/deltachat-pages/issues/401.  The languages had
+already been merged, but the automated browser language detection didn't work
+yet for those languages.
+
+So I changed the NGINX config to include them as well, reloaded nginx, tested
+it, and committed it to etckeeper:
+
+```
+sudo systemctl reload nginx
+sudo etckeeper commit "Added zh_CN, gl, cs, tr, id to browser language detection"
+```
+
