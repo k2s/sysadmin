@@ -144,3 +144,109 @@ https://download.delta.chat/android/nightly/.
 The setup is documented here:
 https://github.com/deltachat/sysadmin/tree/master/download.delta.chat#android-nightlys
 
+## Upgrading b1.delta.chat to Ubuntu 20.04
+
+The guide we used:
+https://ubuntu.com/blog/how-to-upgrade-from-ubuntu-18-04-lts-to-20-04-lts-today
+
+First we checked which version was running before the upgrade:
+
+```
+$ uname -a
+Linux b1 4.15.0-112-generic #113-Ubuntu SMP Thu Jul 9 23:41:39 UTC 2020 x86_64 x86_64 x86_64 GNU/Linux
+```
+
+And which services were running:
+
+```
+$ sudo service --status-all
+ [ + ]  apparmor
+ [ + ]  atd
+ [ + ]  binfmt-support
+ [ - ]  cgroupfs-mount
+ [ - ]  console-setup.sh
+ [ + ]  cpufrequtils
+ [ + ]  cron
+ [ - ]  cryptdisks
+ [ - ]  cryptdisks-early
+ [ + ]  dbus
+ [ + ]  docker
+ [ + ]  ebtables
+ [ + ]  grub-common
+ [ + ]  haveged
+ [ - ]  hwclock.sh
+ [ - ]  keyboard-setup.sh
+ [ + ]  kmod
+ [ + ]  libvirt-guests
+ [ - ]  libvirtd
+ [ + ]  loadcpufreq
+ [ - ]  lvm2
+ [ + ]  lvm2-lvmetad
+ [ + ]  lvm2-lvmpolld
+ [ - ]  mdadm
+ [ - ]  mdadm-waitidle
+ [ - ]  nfs-common
+ [ - ]  nfs-kernel-server
+ [ - ]  pcscd
+ [ - ]  plymouth
+ [ - ]  plymouth-log
+ [ + ]  procps
+ [ - ]  redis-server
+ [ - ]  rpcbind
+ [ - ]  rsync
+ [ + ]  rsyslog
+ [ + ]  ssh
+ [ + ]  ubuntu-fan
+ [ + ]  udev
+ [ + ]  unattended-upgrades
+ [ + ]  uuidd
+ [ - ]  virtlogd
+ [ + ]  virtualbox
+ [ - ]  x11-common
+```
+
+Important services are: docker, libvirt, virtualbox, ssh, cron. Also very
+important are the android nightlys, which use cron, docker, and virtualbox.
+
+First we tried out the android nightly build, and it ran through fine. I
+quickly installed the nightly apk to test if it worked - and it did.
+
+### Run the upgrade
+
+Then we ran `sudo do-release-upgrade -m server --allow-third-party -c` to check
+for new versions - it offered us to install Ubuntu 20.04.2 LTS. So we ran `sudo
+do-release-upgrade -m server --allow-third-party`, but it asked us to upgrade
+to the newest packages of our current distribution first.
+
+So we ran `sudo apt update` and `sudo apt upgrade` first. Then we continued
+with `sudo do-release-upgrade -m server --allow-third-party` This time it asked
+us for a reboot. We checked that no CI jobs were running, and rebooted with
+`sudo systemctl reboot -i`.
+
+After a few minutes the server was up again and we could ssh-login without
+problems. We ran `sudo services --status-all` to check whether everything was
+fine again, but we had to start uuidd and docker manually with `sudo systemctl
+start uuidd docker`. We enabled them with `sudo systemctl enable docker` and
+`sudo systemctl enable uuidd`. For uuidd it didn't work to enable it at reboot
+- weird, but we can't do much about it :shrug:.
+
+Then we dared to run sudo run `do-release-upgrade -m server
+--allow-third-party` again. It told us that a few packages would be removed,
+but none of that looked important to us. So we confirmed with `y`.
+
+The ubuntu installation asked us some things, during which and we lost the
+terminal session so we had to figure out, how to resume the installation -
+first we killed the old process with `kill 10664` to get rid of the dpkg lock,
+then we could continue the upgrade process with `sudo dpkg --configure -a`.
+During the upgrade process we were asked to integrate maintainer changes to
+config files into our configuration; we had to touch
+`/etc/systemd/resolved.conf`, `/etc/ssh/sshd_config`, and
+`/etc/libvirt/qemu.conf`. At some point the upgrade completed.
+https://askubuntu.com/questions/346678/how-do-i-resume-a-release-upgrade
+
+After accepting incoming changes and replacing our `/etc/ssh/sshd_config` file,
+we disabled ssh password login, so you can only login with a public key.
+
+After the upgrade, we tried to build the android nightlys - and it worked out
+of the box! So we can proudly claim that the upgrade went (almost) flawlessly.
+
