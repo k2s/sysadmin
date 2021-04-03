@@ -1,0 +1,45 @@
+server {
+
+        listen [::]:443 ssl ipv6only=on; # managed by Certbot
+        listen 443 ssl; # managed by Certbot
+
+        server_name merlinux.eu; # managed by Certbot
+
+        root /var/www/html;
+        index index.html index.htm;
+
+        location / {
+                # First attempt to serve request as file, then
+                # as directory, then fall back to displaying a 404.
+                try_files $uri $uri/ =404;
+        }
+        
+        location /new_email {
+                proxy_pass http://localhost:3691/;
+        }
+
+        location /.well-known/autoconfig/mail/config-v1.1.xml {
+            alias /etc/well-known/autoconfig-mail-examplecom.xml;
+        }
+                
+        
+        ssl_certificate /etc/letsencrypt/live/merlinux.eu/fullchain.pem; # managed by Certbot
+        ssl_certificate_key /etc/letsencrypt/live/merlinux.eu/privkey.pem; # managed by Certbot
+        include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+        ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+server {
+
+        if ($host = merlinux.eu) {
+                return 301 https://$host$request_uri;
+        } # managed by Certbot
+
+
+        listen 80 ;
+        listen [::]:80 ;
+        
+        server_name merlinux.eu;
+        return 404; # managed by Certbot
+}
