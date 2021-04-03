@@ -2,29 +2,28 @@
 merlinux.eu specifically was set up as the business email server for merlinux GmbH by Janek. It's a 1-core VM hosted at Hetzner.
 
 ## How to setup a Mailserver for Deltachat with Dovecot and Postfix (hq6 and dubby)
-Setup: Debian 10
 This should be an example how to setup a very minimalistic Mailserver for use with DeltaChat. We will use [mailadm](https://github.com/deltachat/mailadm) to manage mail accounts and create qr-join codes.
 
 ### Before we install the mailserver components, we should take a look at our dns setting at our dns provider.
-This is the full example zone file. First you should set the A, AAAA, MX records. Also set the SPF record. Later we will add TXT records for DKIM and DMARC. Also remember, that you need to set a Reverse-DNS-Record / PTR for your FQDN. You usually do this at the hosting provider.
+This is the full example zone file. First you should set the A, AAAA, MX records. Also set the SPF record. Later we will add TXT records for DKIM and DMARC. Also remember, that you need to set a Reverse-DNS-Record / PTR for your FQDN. You usually do this at the hosting provider. You usually do not have to configure the Nameserver/Zone of Authority records (NS, SOA), since most providers do this for you and will let you configure your domain with an webinterface.
 ```
-$ORIGIN example.org.
+$ORIGIN merlinux.eu.
 $TTL 86400
 ; SOA Records
-@		IN	SOA	ns1.exampleprovider.com. dns.exampleprovider.com. 222222222 86400 7200 3600000 3600
+@	1800	IN	SOA	ns1.first-ns.de. dns.hetzner.com. 2020111400 14400 1800 604800 1800
 ; NS Records
-@		IN	NS	ns.exampleprovider.com.
-@		IN	NS	nstwo.exampleprovider.com.
-@		IN	NS	nsthree.exampleprovider.com.
+@		IN	NS	ns1.first-ns.de.
+@		IN	NS	robotns2.second-ns.de.
+@		IN	NS	robotns3.second-ns.com.
 ; MX Records
-@		IN	MX	1 example.org.
+@		IN	MX	1 merlinux.eu.
 ; A Records
-@		IN	A	85.85.85.85
+@		IN	A	95.217.159.152
 ; AAAA Records
-@		IN	AAAA	2222:2222:2222:2222:2222:2222
+@		IN	AAAA	2a01:4f9:c010:78bc::1
 ; TXT Records
 mail._domainkey		IN	TXT	"v=DKIM1; h=sha256; k=rsa; s=email; " "p=............................" 
-@		IN	TXT	"v=spf1 mx a:example.org -all"
+@		IN	TXT	"v=spf1 mx a:merlinux.eu -all"
 _dmarc		IN	TXT	"v=DMARC1; p=reject; rua=mailto:your@email.com; ruf=mailto:your@email.com; adkim=r; aspf=r; rf=afrf"
 ```
 
@@ -59,7 +58,7 @@ $ sudo vim /etc/hosts
 It should look something like this:
 ```
 127.0.0.1   localhost
-127.0.1.1   example.org  mail
+127.0.1.1   merlinux.eu  mail
 
 ::1         localhost ip6-localhost ip6-loopback
 ff02::1     ip6-allnodes
@@ -104,9 +103,9 @@ In our example we will serve a webserver and a mailserver with the same domain.
 $ sudo apt install certbot python-certbot-nginx
 $ sudo certbot --nginx
 ```
-Enter Email Adress and your domain e.g. example.org
+Enter Email Adress and your domain e.g. merlinux.eu
 
-Also enter let Certbot redirect all traffic over https. By using the `certbot --nginx` option, Certbox will also setup a cronjob, which will take care of renewal. You should now be able to access your domain in the browser with TLS. 
+Also let Certbot redirect all traffic over https. By using the `certbot --nginx` option, Certbox will also setup a cronjob, which will take care of renewal. You should now be able to access your domain in the browser with TLS. 
 
 Then we can prepare the webserver for the use of mailadm, by adding the following routes to our nginx config, in the SSL server block.
 ```
@@ -119,7 +118,7 @@ server {
         listen [::]:443 ssl ipv6only=on; # managed by Certbot
         listen 443 ssl; # managed by Certbot
 
-        server_name example.org; # managed by Certbot
+        server_name merlinux.eu; # managed by Certbot
 
         root /var/www/html;
         index index.html index.htm;
@@ -139,8 +138,8 @@ server {
         }
                 
         
-        ssl_certificate /etc/letsencrypt/live/example.org/fullchain.pem; # managed by Certbot
-        ssl_certificate_key /etc/letsencrypt/live/example.org/privkey.pem; # managed by Certbot
+        ssl_certificate /etc/letsencrypt/live/merlinux.eu/fullchain.pem; # managed by Certbot
+        ssl_certificate_key /etc/letsencrypt/live/merlinux.eu/privkey.pem; # managed by Certbot
         include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
         ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
 
@@ -148,7 +147,7 @@ server {
 
 server {
 
-        if ($host = example.org) {
+        if ($host = merlinux.eu) {
                 return 301 https://$host$request_uri;
         } # managed by Certbot
 
@@ -156,7 +155,7 @@ server {
         listen 80 ;
         listen [::]:80 ;
         
-        server_name example.org;
+        server_name merlinux.eu;
         return 404; # managed by Certbot
 }
 ```
@@ -174,19 +173,19 @@ $ sudo vim /etc/well-known/autoconfig-mail-examplecom.xml
 <?xml version="1.0" encoding="UTF-8"?>
 
 <clientConfig version="1.1">
-  <emailProvider id="example.org">
-    <domain>example.org</domain>
-    <displayName>example.org mail</displayName>
-    <displayShortName>example.org</displayShortName>
+  <emailProvider id="merlinux.eu">
+    <domain>merlinux.eu</domain>
+    <displayName>merlinux.eu mail</displayName>
+    <displayShortName>merlinux.eu</displayShortName>
     <incomingServer type="imap">
-      <hostname>example.org</hostname>
+      <hostname>merlinux.eu</hostname>
       <port>993</port>
       <socketType>SSL</socketType>
       <authentication>password-cleartext</authentication>
       <username>%EMAILADDRESS%</username>
     </incomingServer>
     <outgoingServer type="smtp">
-      <hostname>example.org</hostname>
+      <hostname>merlinux.eu</hostname>
       <port>465</port>
       <socketType>SSL</socketType>
       <authentication>password-cleartext</authentication>
@@ -300,7 +299,7 @@ disable_plaintext_auth = yes
 auth_mechanisms = plain login
 
 # set this to "yes" if you want to see more logging
-# eg when testing with "doveadm auth lookup xyz@example.org"
+# eg when testing with "doveadm auth lookup xyz@merlinux.eu"
 auth_debug = no
 
 !include auth-mailadm.conf.ext
@@ -322,8 +321,8 @@ protocol !indexer-worker {
 ```
 ssl = required
 
-ssl_cert = </etc/letsencrypt/live/example.org/fullchain.pem
-ssl_key = </etc/letsencrypt/live/example.org/privkey.pem
+ssl_cert = </etc/letsencrypt/live/merlinux.eu/fullchain.pem
+ssl_key = </etc/letsencrypt/live/merlinux.eu/privkey.pem
 
 ssl_dh=</etc/dovecot/dh.pem
 
@@ -348,14 +347,14 @@ readme_directory = no
 compatibility_level = 2
 
 # TLS parameters
-smtpd_tls_cert_file = /etc/letsencrypt/live/example.org/fullchain.pem
-smtpd_tls_key_file = /etc/letsencrypt/live/example.org/privkey.pem
+smtpd_tls_cert_file = /etc/letsencrypt/live/merlinux.eu/fullchain.pem
+smtpd_tls_key_file = /etc/letsencrypt/live/merlinux.eu/privkey.pem
 smtpd_use_tls=yes
 smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache
 smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
 
 smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
-myhostname = example.org
+myhostname = merlinux.eu
 alias_maps = hash:/etc/aliases
 alias_database = hash:/etc/aliases
 myorigin = /etc/mailname
@@ -385,7 +384,7 @@ milter_default_action = accept
 milter_protocol   = 6
 smtpd_milters     = inet:localhost:12201
 non_smtpd_milters = inet:localhost:12201
-virtual_mailbox_domains = example.org
+virtual_mailbox_domains = merlinux.eu
 virtual_transport = lmtp:unix:private/dovecot-lmtp
 dovecot_destination_recipient_limit = 1
 virtual_mailbox_base = /var/vmail
@@ -497,7 +496,7 @@ $ vim install_mailadm.sh
 $ adduser mailadm vmail
 $ sudo chgrp vmail ~mailadm
 ```
-Now review the installscript and change the enviroment variables. For example the `MAIL_DOMAIN=example.org` to your FQDN. As well as the `WEB_ENDPOINT`.
+Now review the installscript and change the enviroment variables. For example the `MAIL_DOMAIN=merlinux.eu` to your FQDN. As well as the `WEB_ENDPOINT`.
 And then run it.
 ```
 $ sudo bash install_mailadm.sh
@@ -532,7 +531,7 @@ $ mailadm list-tokens
 Now you should be able to generate a new user with the token you created.
 Just try this in another shell:
 ```
-$ curl -X POST https://example.org/new_email?t=1d<your token params>
+$ curl -X POST https://merlinux.eu/new_email?t=1d<your token params>
 ```
 This should return a burner email adress and the password.
 
@@ -601,36 +600,35 @@ $ sudo vim /etc/opendkim/TrustedHosts
 localhost
 ::1
 
-*.example.com
+*.merlinux.eu
 
 #*.example.net
-#*.example.org
 ```
 Create a key table:
 ```
 $ sudo vim /etc/opendkim/KeyTable
 ```
 ```
-mail._domainkey example.org:mail:/etc/opendkim/keys/example.org/mail.private
+mail._domainkey merlinux.eu:mail:/etc/opendkim/keys/merlinux.eu/mail.private
 ```
 Create a signing table:
 ```
 $ sudo vim /etc/opendkim/SigningTable
 ```
 ```
-*@example.org mail._domainkey
+*@merlinux.eu mail._domainkey
 ```
 Generate keys:
 ```
 $ cd /etc/opendkim/keys
-$ sudo mkdir example.org
-$ cd example.org
+$ sudo mkdir merlinux.eu
+$ cd merlinux.eu
 ```
 ```
-$ sudo opendkim-genkey -s mail -d example.org
+$ sudo opendkim-genkey -s mail -d merlinux.eu
 $ sudo chown opendkim:opendkim mail.private
 ```
-Now /etc/opendkim/keys/example.org/mail.txt should contain our public DKIM key. Now let's add it to our DNS entries:
+Now /etc/opendkim/keys/merlinux.eu/mail.txt should contain our public DKIM key. Now let's add it to our DNS entries:
 ```
 Name: mail._domainkey
 
