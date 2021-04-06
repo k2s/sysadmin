@@ -800,3 +800,113 @@ sudo systemctl reload nginx
 sudo etckeeper commit "Added zh_CN, gl, cs, tr, id to browser language detection"
 ```
 
+## Upgrading page to Debian 10
+
+Authors: missytake@systemli.org and jankass@freepoterie.fr
+
+On 2021-04-06 we wanted to upgrade page to Debian 10, to be able to offer
+TLSv1.3 on our websites. The nginx version which was installed by default on
+Debian 9 didn't offer TLSv1.2 and threw a warning when we tried to apply a new
+config:
+
+```
+[warn] invalid value "TLSv1.3" in /etc/letsencrypt/options-ssl-nginx.conf:10
+```
+
+First we checked which debian version and which services page was running:
+
+```
+$ uname -a
+Linux page 4.14.85 #1 SMP Wed Dec 5 12:54:02 UTC 2018 x86_64 GNU/Linux
+$ sudo service --status-all
+ [ + ]  cron
+ [ - ]  hwclock.sh
+ [ + ]  kmod
+ [ + ]  netfilter-persistent
+ [ + ]  networking
+ [ + ]  nginx
+ [ + ]  ntp
+ [ + ]  procps
+ [ - ]  rsync
+ [ + ]  rsyslog
+ [ + ]  ssh
+ [ - ]  sudo
+ [ + ]  udev
+ [ + ]  unattended-upgrades
+```
+
+## Editing the sources.list file:
+
+First we changed all appearances of `stretch` to `buster` in
+`/etc/apt/sources.list`:
+
+```
+deb http://ftp.nl.debian.org/debian buster main contrib non-free
+deb http://ftp.nl.debian.org/debian buster-updates main contrib non-free
+deb http://security.debian.org/debian-security buster/updates main contrib non-free
+```
+
+and `/etc/apt/sources.list.d/certbot.list`:
+
+```
+deb http://deb.debian.org/debian buster-backports main
+```
+
+## Doing the Upgrade
+
+So we continued with the upgrade:
+
+```
+sudo apt-get update
+sudo apt-get upgrade
+```
+
+This asked us, if we are okay if it restarted services without asking for
+permission each time - we confirmed. After that, it completed successfully
+without further interruptions.
+
+```
+sudo apt-get dist-upgrade
+```
+
+This installed the rest of the new Debian 10 packages. This asked us a few
+times whether we wanted new versions of the following config files:
+
+- `/etc/nginx/nginx.conf`: these changes were unnecessary, so we kept our
+  version
+- `/etc/nginx/sites-available/default`: we didn't have this file before. It
+  doesn't do harm, so we accepted it.
+- `/etc/sysctl.conf`: we weren't sure about this one, as it was modified by our
+  provider, as it seems. We kept the providers version, as we weren't sure how
+  important it is.
+- `/etc/ssh/sshd_config`: the changes were not useful, so we kept our version.
+
+After that, it completed successfully. Now as etckeeper made a commit during
+this apt run, we used `sudo etckeeper vcs commit --amend` to change the commit
+message to "upgrade from Debian 9 to Debian 10".
+
+Then we rebooted with `sudo reboot`.
+
+After that reboot, we removed outdated packages with `sudo apt --purge
+autoremove`.
+
+## Did it work?
+
+Then we checked whether it had worked:
+
+```
+$ hostnamectl
+   Static hostname: page
+         Icon name: computer-vm
+           Chassis: vm
+        Machine ID: 26398b58a4be4cdfa5144c3d2b4a6d38
+           Boot ID: a6677d0f477847869e58430405a398c7
+    Virtualization: xen
+  Operating System: Debian GNU/Linux 10 (buster)
+            Kernel: Linux 5.4.22
+      Architecture: x86-64
+```
+
+And whether the services were still running. There was now a new dbus daemon
+which we didn't have before, but apart from that, everything worked.
+
