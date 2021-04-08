@@ -1,5 +1,5 @@
-# merlinux.eu
-merlinux.eu specifically was set up as the business email server for merlinux GmbH by Janek. It's a 1-core VM hosted at Hetzner.
+# merlinux.eu (hq6)
+merlinux.eu specifically was set up as the business email server for merlinux GmbH by Janek. It's a 1-core VM hosted at Hetzner. In addition to the following guide, which was created as a "clean" mailserver setup for hq6 and dubby, we installed rspamd on hq6.
 
 ## How to setup a Mailserver for Deltachat with Dovecot and Postfix (hq6 and dubby)
 This should be an example how to setup a very minimalistic Mailserver for use with DeltaChat. We will use [mailadm](https://github.com/deltachat/mailadm) to manage mail accounts and create qr-join codes.

@@ -14,6 +14,7 @@ The machines which are backed up there are:
 * [x] hq4
 * [x] hq5
 * [x] support.delta.chat
+* [x] merlinux.eu
 * [ ] devpi.net
 * [ ] lists.codespeak.net
 
@@ -625,3 +626,16 @@ initialize repository
 create backup script
 create cronjob
 
+## merlinux.eu (hq6)
+
+merlinux.eu is beeing cross backed up to dubby.org:/home/back/hq6
+The backup script is here: merlinux.eu:/etc/cron.hourly/zz-backup.sh
+
+what's supposed to work after restore?
+generate backup SSH key
+copy public key to backup server
+create SSH config
+install borgbackup
+initialize repository
+create backup script
+create cronjob
