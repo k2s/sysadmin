@@ -507,4 +507,83 @@ To test it, I created a temporary account with an existing token, and sent a
 message to myself. It took a few minutes, but in the end it worked. So
 everything fine :)
 
+## Lightmeter
+
+We set up lightmeter on testrun.org. It's monitoring our mail logs and
+notifying us about issues. It has an overview web interface.
+
+You can access the web interface through SSH forwarding:
+
+1. Connect to testrun.org with `ssh -L 8080:localhost:8080 testrun.org`
+2. Open http://localhost:8080 in your browser
+3. Login. The credentials are in the git crypt secrets. You can ask
+   missytake@systemli.org if you need access.
+
+### Installation
+
+We downloaded the lightmeter binaries like documented in
+https://gitlab.com/lightmeter/controlcenter#install-from-binaries:
+
+```
+wget https://dl.bintray.com/lightmeter/controlcenter/lightmeter-linux_amd64-1.6.0
+chmod +x lightmeter-linux_amd64-1.6.0
+sudo mv lightmeter-linux_amd64-1.6.0 /usr/local/bin/lightmeter
+lightmeter --help
+```
+
+This printed the help message, proving that the install worked. We also created
+a folder as a workspace and tried again:
+
+```
+sudo mkdir /var/lib/lightmeter_workspace
+lightmeter -watch_dir /var/log/ -workspace /var/lib/lightmeter_workspace -listen 8080
+```
+
+This threw some file access errors, so we decided to create an own user for
+lightmeter with `sudo adduser lightmeter`. We gave it the workspace folder, so
+the program could work with `sudo chown lightmeter:lightmeter
+/var/lib/lightmeter_workspace`.
+
+Lightmeter needs read access to some logs which were owned by root:adm. These
+log files are readable by lightmeter:
+
+- mail.log
+- mail.warn
+- mail.err
+
+So we gave them to the lightmeter group:
+
+```
+sudo chown root:lightmeter /var/log/mail.log
+sudo chown root:lightmeter /var/log/mail.warn
+sudo chown root:lightmeter /var/log/mail.err
+```
+
+Now we only had to add the users who had previously had access to these log
+files to the lightmeter group:
+
+```
+sudo adduser hpk lightmeter
+sudo adduser deltabot lightmeter
+```
+
+### Initial Setup
+
+Then we connected to the lightmeter dashboard on testruns localhost with ssh
+port forwarding with:
+
+```
+ssh -L 8080:localhost:8080 missytake@testrun.org
+```
+
+And could open the dashboard on the localhost of our machine in our browser.
+After beeing happy, that it works we created an admin account.
+
+In the settings, we enabled email notifications and added testrun.org as an
+email address. Unfortunately we couldn't test the mail notifications and the
+graphics didn't show anything yet.
+
+### Creating a systemd service
+
+**todo**
 
