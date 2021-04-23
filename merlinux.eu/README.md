@@ -659,3 +659,12 @@ Now you should be able to write emails to gmail/yahoo/gmx!
 
 ## Congratulations you successfully configured a mailserver!
 You can now test your setup and connect [deltachat](http://get.delta.chat/) to your new mailserver.
+
+## Secure SSH Access
+
+Author: missytake@systemli.org
+
+On 2021-04-23, we realized that SSH was not protected after the best practices.
+So I installed sshguard with `sudo apt install sshguard`. The default config
+seemed fine, so I didn't touch anything.
+

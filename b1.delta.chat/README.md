@@ -249,4 +249,12 @@ we disabled ssh password login, so you can only login with a public key.
 
 After the upgrade, we tried to build the android nightlys - and it worked out
 of the box! So we can proudly claim that the upgrade went (almost) flawlessly.
+ 
+## Secure SSH Access
+
+Author: missytake@systemli.org
+
+On 2021-04-23, we realized that SSH was not protected after the best practices.
+So I installed sshguard with `sudo apt install sshguard`. The default config
+seemed fine, so I didn't touch anything.
 

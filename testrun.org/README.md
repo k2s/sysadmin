@@ -587,3 +587,12 @@ graphics didn't show anything yet.
 
 **todo**
 
+## Secure SSH Access
+
+Author: missytake@systemli.org
+
+On 2021-04-23, we realized that SSH was not protected after the best practices.
+So I forbade PasswordAuthentication in the `/etc/ssh/sshd_config` and installed
+sshguard with `sudo apt install sshguard`. The default config seemed fine, so I
+didn't touch anything.
+

@@ -910,3 +910,11 @@ $ hostnamectl
 And whether the services were still running. There was now a new dbus daemon
 which we didn't have before, but apart from that, everything worked.
 
+## Secure SSH Access
+
+Author: missytake@systemli.org
+
+On 2021-04-23, we realized that SSH was not protected after the best practices.
+So I installed sshguard with `sudo apt install sshguard`. The default config
+seemed fine, so I didn't touch anything.
+
