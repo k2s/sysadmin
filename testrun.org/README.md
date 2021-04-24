@@ -554,9 +554,9 @@ log files are readable by lightmeter:
 So we gave them to the lightmeter group:
 
 ```
-sudo chown root:lightmeter /var/log/mail.log
-sudo chown root:lightmeter /var/log/mail.warn
-sudo chown root:lightmeter /var/log/mail.err
+sudo chown root:lightmeter /var/log/mail.log*
+sudo chown root:lightmeter /var/log/mail.warn*
+sudo chown root:lightmeter /var/log/mail.err*
 ```
 
 Now we only had to add the users who had previously had access to these log
