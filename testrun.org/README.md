@@ -596,3 +596,26 @@ So I forbade PasswordAuthentication in the `/etc/ssh/sshd_config` and installed
 sshguard with `sudo apt install sshguard`. The default config seemed fine, so I
 didn't touch anything.
 
+## Rate Limiting
+
+On 2021-04-27, we decided that we should implement outgoing rate limiting, in
+case spammers would want to abuse testrun.org.
+
+We did't want to restrict our users too much, but obviously we also care about
+not burdening the mail ecosystem with spam, and it's possible, though not very
+likely that spammers find out how to automatically use our registration
+mechanism.
+
+So we introduced the following config value to `/etc/postfix/main.conf`:
+
+```
+smtpd_client_message_rate_limit = 60
+```
+
+Then we reloaded postfix with `sudo systemctl reload postfix`.
+
+We didn't dare to make it even lower, in case someone who is in a lot of group
+chats has read receipts turned on. They wouldn't be able to send out messages
+anymore, and wouldn't know why. 60 is still really high, so it's unlikely they
+would reach it.
+
