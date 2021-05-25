@@ -583,6 +583,19 @@ In the settings, we enabled email notifications and added testrun.org as an
 email address. Unfortunately we couldn't test the mail notifications and the
 graphics didn't show anything yet.
 
+## Syslog timestamps
+
+On 2021-02-01 Janek changed the timestamp format of all syslog files to
+RFC-3339. To do so, he commented out the following line in `/etc/rsyslog.conf`:
+
+```
+-$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
++#$ActionFileDefaultTemplate RSYSLOG_SyslogProtocol23Format
+```
+
+Later we found out that [lightmeter doesn't support RFC-3339 the way we need
+it](https://gitlab.com/lightmeter/controlcenter/-/issues/499#note_583806220).
+
 ### Creating a systemd service
 
 **todo**
@@ -618,4 +631,5 @@ We didn't dare to make it even lower, in case someone who is in a lot of group
 chats has read receipts turned on. They wouldn't be able to send out messages
 anymore, and wouldn't know why. 60 is still really high, so it's unlikely they
 would reach it.
+
 
