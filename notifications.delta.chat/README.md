@@ -301,6 +301,126 @@ configuration didn't support ipv6 and nowadays Let's Encrypt uses that. Took us
 hours to figure it out, but a little `listen [::]:80;` in
 `/etc/nginx/sites-available/testrun.org` did the trick.
 
+## Migrating notifications.delta.chat to page
+
+Authors: missytake@systemli.org and jankass@freepoterie.fr
+
+On 2021-05-26 we decided that we should migrate notifications.delta.chat to page, as it is one of the centralized Delta services. Like the Delta Chat website, or the Delta Chat download page, it can't be decentralized very well anyway. So it makes sense to run on the one centralized Delta server. (The forum is a special case; it is also a centralized Delta service. But it has its own VM to minimize attack surface.)
+
+### Create Unix User on page
+
+On page, we created a new user with `sudo adduser notifications`. We stored the password in bg-deltachat/secrets. We logged in with `sudo su -l notifications`.
+
+### Install rustup
+
+As the notifications user, we could install rustup, even without privileges: `curl -sf -L https://static.rust-lang.org/rustup.sh | sh`. We chose the stable toolchain.
+
+Then we logged out and in again, to update PATH. Now running `cargo` produced a help page.
+
+### Clone and Compile notifie.rs
+
+Now we could clone the repository and build the project:
+
+```
+git clone https://github.com/dignifiedquire/notifiers
+cd notifiers
+cargo build --release
+```
+
+First we encountered the following error:
+
+```
+error: linker `cc` not found                                                    
+  |
+  = note: No such file or directory (os error 2)
+
+error: aborting due to previous error
+
+error: could not compile `proc-macro2`
+```
+
+We realized that `build-essential` wasn't installed on page, so we logged out of the notifications user and installed it with `sudo apt install build-essential`.
+
+Then we retried running `cargo build --release`. This time it failed with a different error:
+
+```
+run pkg_config fail: "Failed to run `\"pkg-config\" \"--libs\" \"--cflags\" \"openssl\"`: No such file or directory (os error 2)" 
+```
+
+So we also had to install `libssl-dev` and `pkg-config`. After that, it compiled notifie.rs successfully.
+
+### Migrate Certificate & Database
+
+We copied the cert from testrun.org to our computer with `scp testrun.org:/home/notifications/cert.p12 .`. We needed to make it readable with `sudo chmod 404 /home/notifications/cert.p12` first, though. Then we uploaded it with `scp cert.p12 page:` to missytake's home directory. On page, we moved it to `/home/notifications`. Finally we fixed the permissions:
+
+```
+-r-------- 1 notifications notifications 1,5K Jan 12 18:36 cert.p12
+```
+
+This certificate is valid until 2021-08-28, then it needs to be replaced.
+
+Then we also copied the databases for the normal service and the sandbox service `/home/notifications/notifiers.db` and `/home/notifications/sandbox.db`. We did the same with the systemd files.
+
+### Create NGINX config
+
+We copied the default nginx config to `/etc/nginx/sites-available/notifications.delta.chat` and changed it to our liking. Then we copied it to `/etc/nginx/sites-available/sandbox.notifications.delta.chat` and changed the URL and port there, just to be sure.
+
+We enabled the pages with:
+
+```
+sudo ln -s /etc/nginx/sites-available/notifications.delta.chat /etc/nginx/sites-enabled/notifications.delta.chat
+sudo ln -s /etc/nginx/sites-available/sandbox.notifications.delta.chat /etc/nginx/sites-enabled/sandbox.notifications.delta.chat
+sudo systemctl reload nginx
+```
+
+### Change DNS Entries
+
+We changed the A & AAAA DNS entries for notifications.delta.chat and sandbox.notifications.delta.chat to the new IP.
+
+### Generate Let's Encrypt Certificates
+
+Then we generated the certs with certbot:
+
+```
+sudo certbot --nginx
+# which domains? 10 11 (notifications.delta.chat & sandbox.notifications.delta.chat)
+# redirect? yes
+```
+
+### Activate systemd
+
+Now we could start the systemd services:
+
+```
+sudo systemctl daemon-reload
+sudo systemctl start notifications
+sudo systemctl start sandbox.notifications
+```
+
+Afterwards, `curl https://notifications.delta.chat` returned `Hello World!`. We checked the log output with `sudo journalctl -f -u notifications.service`. It looked good as well.
+
+### Clean up Data on testrun.org
+
+At some point, we need to clean up the cert, databases, and systemd files from testrun.org. But first, we should wait if problems arise after the migration. After a month or so, we should do this on testrun.org:
+
+```
+sudo deluser --remove-home notifications
+
+sudo unlink /etc/nginx/sites-enabled/notifications.delta.chat
+sudo unlink /etc/nginx/sites-enabled/sandbox.notifications.delta.chat
+sudo rm /etc/nginx/sites-available/notifications.delta.chat
+sudo rm /etc/nginx/sites-available/sandbox.notifications.delta.chat
+
+sudo systemctl stop notifications.service
+sudo systemctl stop sandbox.notifications.service
+sudo systemctl disable notifications.service
+sudo systemctl disable sandbox.notifications.service
+sudo rm /etc/systemd/system/notifications.service
+sudo rm /etc/systemd/system/sandbox.notifications.service
+sudo systemctl daemon-reload
+sudo systemctl reset-failed
+```
+
 ## Viewing the Logs
 
 You can view the logs with `sudo journalctl -u notifications.service` or `sudo
