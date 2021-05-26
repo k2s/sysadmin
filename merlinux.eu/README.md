@@ -648,8 +648,14 @@ Or write an email to a gmail/yahoo/gmx account under your control and look into 
 (/etc/postfix/header_checks_submission file !?!?!)
 
 ### Setup DMARC
-If everything works sofar, we can add the dmarc record to our dns entries. Which will tell other mailservers only to accept mail from our destination, when the dkim signature is correct. This is required by big mailproviders like google yahoo and so on to prevent spoofing.
-Just replace your@email.com by an email adress of yours (Not any on the your new mailserver, or you will not be notified when mails bounce because of failing dkim checks).
+
+If everything works sofar, we can add the dmarc record to our dns entries.
+Which will tell other mailservers only to accept mail from our destination,
+when the dkim signature is correct. This is required by big mailproviders like
+google yahoo and so on to prevent spoofing.  Just replace your@email.com by an
+email adress of yours (Not any on the your new mailserver, or you will not be
+notified when mails bounce because of failing dkim checks).
+
 ```
 Name: _dmarc
 
@@ -658,7 +664,9 @@ Text: "v=DMARC1; p=reject; rua=mailto:your@email.com; ruf=mailto:your@email.com;
 Now you should be able to write emails to gmail/yahoo/gmx!
 
 ## Congratulations you successfully configured a mailserver!
-You can now test your setup and connect [deltachat](http://get.delta.chat/) to your new mailserver.
+
+You can now test your setup and connect [deltachat](http://get.delta.chat/) to
+your new mailserver.
 
 ## Secure SSH Access
 
