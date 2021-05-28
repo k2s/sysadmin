@@ -1,0 +1,106 @@
+# Android Nightly builds pipeline for Concourse CI.
+#
+# Install it with
+#   fly -t b1 set-pipeline -p nightlies -c nightlies.yml -l secret.yml
+# where secret.yml contains private key in the following format:
+#
+# download.delta.chat:
+#   private_key: |
+#     -----BEGIN OPENSSH PRIVATE KEY-----
+#     <skipped>
+#     -----END OPENSSH PRIVATE KEY-----
+resources:
+- name: deltachat-android-git
+  icon: github
+  source:
+    branch: master
+    submodules: none
+    uri: https://github.com/deltachat/deltachat-android.git
+  type: git
+
+- name: deltachat-core-rust-git
+  icon: github
+  source:
+    branch: master
+    uri: https://github.com/deltachat/deltachat-core-rust.git
+  type: git
+
+- name: every-day
+  icon: clock
+  type: time
+
+jobs:
+- name: build
+  plan:
+  - in_parallel:
+      steps:
+      - get: every-day
+        trigger: true
+      - get: deltachat-android-git
+      - get: deltachat-core-rust-git
+  - task: android
+    config:
+      caches:
+      - path: cache
+      image_resource:
+        source:
+          repository: vito/oci-build-task
+        type: registry-image
+      inputs:
+      - name: deltachat-android-git
+      outputs:
+      - name: built-image
+        path: image
+      params:
+        CONTEXT: deltachat-android-git
+        UNPACK_ROOTFS: "true"
+        BUILD_ARG_UID: 0
+        BUILD_ARG_GID: 0
+      platform: linux
+      run:
+        path: build
+    privileged: true
+  - task: build-apk
+    config:
+      inputs:
+      - name: deltachat-android-git
+        path: .
+      - name: deltachat-core-rust-git
+        path: jni/deltachat-core-rust
+      outputs:
+      - name: apk
+        path: build/outputs/apk/
+      platform: linux
+      run:
+        user: deltachat
+        path: bash
+        args:
+        - -exc
+        - |
+          . /root/.profile
+          sh scripts/install-toolchains.sh
+          ./ndk-make.sh
+          ./gradlew assembleDebug
+    image: built-image
+  - task: upload-apk
+    config:
+      inputs:
+      - name: apk
+      platform: linux
+      image_resource:
+        type: registry-image
+        source:
+          repository: alpine
+      run:
+        path: sh
+        args:
+        - -ec
+        - |
+          apk add --no-cache rsync openssh-client
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          echo "(("download.delta.chat".private_key))" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          date="$(date -I)"
+          rsync -e "ssh -o StrictHostKeyChecking=no" -vhr apk/* android-nightly@download.delta.chat:/var/www/html/download/android/nightly/$date/
+          echo "Build uploaded to https://download.delta.chat/android/nightly/$date/"
