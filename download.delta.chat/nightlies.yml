@@ -102,5 +102,5 @@ jobs:
           echo "(("download.delta.chat".private_key))" > ~/.ssh/id_ed25519
           chmod 600 ~/.ssh/id_ed25519
           date="$(date -I)"
-          rsync -e "ssh -o StrictHostKeyChecking=no" -vhr apk/* android-nightly@download.delta.chat:/var/www/html/download/android/nightly/$date/
+          rsync -e "ssh -o StrictHostKeyChecking=no" -vhr apk/*/debug/*.apk android-nightly@download.delta.chat:/var/www/html/download/android/nightly/$date/
           echo "Build uploaded to https://download.delta.chat/android/nightly/$date/"
