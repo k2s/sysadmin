@@ -486,7 +486,7 @@ $ sudo systemctl restart postfix
 ```
 
 ### Install Mailadm
-[mailadm docs](https://mailadm.readthedocs.io/en/latest/#)
+[mailadm](https://mailadm.readthedocs.io/en/latest/#) is a simple commandline tool to manage our users. It will create and maintain the database that dovecot will use to deliver incoming or authenticate outgoing mail.
 ```
 $ sudo apt install python3 python3-pip python3-venv
 $ cd ~
@@ -501,16 +501,6 @@ And then run it.
 ```
 $ sudo bash install_mailadm.sh
 ```
-If the script should fail at the installation. You can try to install mailadm in the venv yourself and run the script again.
-#### THIS MAY NOT BE NECESSARY:
-```
-$ sudo su root
-$ python3 -m venv /var/lib/mailadm/venv
-$ /var/lib/mailadm/venv/bin/pip install -U .
-$ exit
-$ sudo bash install_mailadm.sh
-```
-If the script finishes by creating symlinks and restarting services, you can continue.
 Add the mailadm executable to your PATH and set the database enviroment variable:
 ```
 $ export PATH=~mailadm/venv/bin:$PATH
@@ -518,10 +508,9 @@ $ export MAILADM_DB=/var/lib/mailadm/mailadm.db
 ```
 And set some permissions
 ```
-$ sudo chmod 777 /var/lib/mailadm/mailadm.db
-$ sudo chmod 777 /var/lib/mailadm
-$ sudo chmod 777 /var/lib/mailadm/virtual_mailboxes.db
-$ sudo chmod 777 /var/lib/mailadm/virtual_mailboxes
+$ sudo chmod 664 /var/lib/mailadm/mailadm.db
+$ sudo chmod 644 /var/lib/mailadm/virtual_mailboxes.db
+$ sudo chmod 644 /var/lib/mailadm/virtual_mailboxes
 ```
 We should be able to create a token now. It will be valid for one day. You can also create tokens, that will be valid for longer periods.
 ```
