@@ -204,7 +204,7 @@ $ sudo etckeeper commit "<commit-message>"
 ## Install postfix and dovecot
 
 ```
-$ sudo apt install dovecot-common dovecot-imapd dovecot-lmtpd dovecot-sqlite
+$ sudo apt install dovecot-common dovecot-imapd dovecot-lmtpd dovecot-sqlite dovecot-sieve dovecot-managesieved
 ```
 Generate Diffie-Hellman Key (this can take a while)
 ```
@@ -326,9 +326,85 @@ ssl_dh=</etc/dovecot/dh.pem
 
 ssl_min_protocol = TLSv1.2
 ```
+
+/etc/dovecot/conf.d/20-lmtp.conf
+```
+protocol lmtp {
+  mail_plugins = $mail_plugins sieve
+}
+```
+/etc/dovecot/conf.d/20-imap.conf
+```
+protocol imap {
+  mail_plugins = $mail_plugins imap_quota imap_sieve
+}
+```
+/etc/dovecot/conf.d/20-managesieve.conf
+```
+service managesieve-login {
+  inet_listener sieve {
+    port = 4190
+  }
+}
+service managesieve {
+  process_limit = 1024
+}
+protocol sieve {
+}
+```
+/etc/dovecot/conf.d/90-sieve.conf
+```
+plugin {
+  # sieve = file:~/sieve;active=~/.dovecot.sieve
+  sieve_plugins = sieve_imapsieve sieve_extprograms
+  sieve_before = /var/vmail/mail/sieve/global/spam-global.sieve
+  sieve = file:/var/vmail/mail/sieve/%d/%n/scripts;active=/var/vmail/mail/sieve/%d/%n/active-script.sieve
+  imapsieve_mailbox1_name = Spam
+  imapsieve_mailbox1_causes = COPY
+  imapsieve_mailbox1_before = file:/var/vmail/mail/sieve/global/report-spam.sieve
+  imapsieve_mailbox2_name = *
+  imapsieve_mailbox2_from = Spam
+  imapsieve_mailbox2_causes = COPY
+  imapsieve_mailbox2_before = file:/var/vmail/mail/sieve/global/report-ham.sieve
+  sieve_pipe_bin_dir = /usr/bin
+  sieve_global_extensions = +vnd.dovecot.pipe
+}
+```
+Create a directory for our sieve scripts:
+```
+$ sudo mkdir -p /var/vmail/mail/sieve/global
+```
+/var/vmail/mail/sieve/global/spam-global.sieve
+```
+require ["fileinto","mailbox"];
+if anyof(
+    header :contains ["X-Spam-Flag"] "YES",
+    header :contains ["X-Spam"] "Yes",
+    header :contains ["Subject"] "*** SPAM ***"
+    )
+{
+    fileinto :create "Spam";
+    stop;
+}
+```
+/var/vmail/mail/sieve/global/report-spam.sieve
+```
+require ["vnd.dovecot.pipe", "copy", "imapsieve"];
+pipe :copy "rspamc" ["learn_spam"];
+```
+/var/vmail/mail/sieve/global/report-ham.sieve
+```
+require ["vnd.dovecot.pipe", "copy", "imapsieve"];
+pipe :copy "rspamc" ["learn_ham"];
+```
+Compile sieve scripts and set the correct permissions:
 ```
 $ sudo systemctl enable --now dovecot
 $ sudo systemctl restart dovecot
+$ sudo sievec /var/vmail/mail/sieve/global/spam-global.sieve
+$ sudo sievec /var/vmail/mail/sieve/global/report-spam.sieve
+$ sudo sievec /var/vmail/mail/sieve/global/report-ham.sieve
+$ sudo chown -R vmail: /var/vmail/mail/sieve/
 ```
 
 #### Postfix
@@ -381,8 +457,9 @@ smtp_tls_note_starttls_offer = yes
 smtpd_tls_received_header = yes
 milter_default_action = accept
 milter_protocol   = 6
-smtpd_milters     = inet:localhost:12201
-non_smtpd_milters = inet:localhost:12201
+milter_mail_macros = i {mail_addr} {client_addr} {client_name} {auth_authen}
+smtpd_milters     = inet:localhost:11334
+non_smtpd_milters = inet:localhost:11334
 virtual_mailbox_domains = merlinux.eu
 virtual_transport = lmtp:unix:private/dovecot-lmtp
 dovecot_destination_recipient_limit = 1
@@ -524,10 +601,207 @@ Just try this in another shell:
 ```
 $ curl -X POST https://merlinux.eu/new_email?t=1d<your token params>
 ```
-This should return a burner email adress and the password.
+This should return a burner email adress and the password valid for a defined time. You can now test if you can connect to your mail server with deltachat or any other mailclient. It should find the settings itself. You should also be able to send and recieve email.
 
-### Setup OpenDKIM
-TODO: use rspamd for dkim signing, spam checking, rate limit
+### Setup Rspamd
+Rspamd to will help us to check icoming mail for spam and have user sending limits for blocking spammers from our host. Let's add their ppa and install the newest version.
+```
+$ sudo apt install software-properties-common lsb-release redis-server wget
+$ wget -O- https://rspamd.com/apt-stable/gpg.key | sudo apt-key add -
+$ echo "deb http://rspamd.com/apt-stable/ $(lsb_release -cs) main" | sudo tee -a /etc/apt/sources.list.d/rspamd.list
+$ sudo apt update
+$ sudo apt install rspamd
+```
+Instead of modifying the stock config files, we will create new files in the /etc/rspamd/local.d/local.d/ directory, which will overwrite the default setting.
+
+/etc/rspamd/local.d/worker-normal.inc
+```
+bind_socket = "127.0.0.1:11333";
+```
+
+/etc/rspamd/local.d/worker-proxy.inc
+```
+bind_socket = "127.0.0.1:11332";
+milter = yes;
+timeout = 120s;
+upstream "local" {
+  default = yes;
+  self_scan = yes;
+}
+```
+We need to set up a password for the controller worker, which provides access to the Rspamd web interface. To generate an encrypted password, run:
+```
+$ rspamadm pw --encrypt -p P4ssvv0rD 
+$2$khz7u8nxgggsfay3qta7ousbnmi1skew$zdat4nsm7nd3ctmiigx9kjyo837hcjodn1bob5jaxt7xpkieoctb
+```
+
+/etc/rspamd/local.d/worker-controller.inc
+```
+password = "$2$khz7u8nxgggsfay3qta7ousbnmi1skew$zdat4nsm7nd3ctmiigx9kjyo837hcjodn1bob5jaxt7xpkieoctb";
+```
+
+We will use Redis as a back-end for Rspamd statistics:
+
+/etc/rspamd/local.d/classifier-bayes.conf
+```
+servers = "127.0.0.1";
+backend = "redis";
+autolearn = true;
+```
+Set the milter headers:
+
+/etc/rspamd/local.d/milter_headers.conf
+```
+use = ["x-spamd-bar", "x-spam-level", "authentication-results"];
+global {
+ use_dcc = no;
+}
+spamd {
+ spamd_never_reject = yes;
+ extended_spam_headers = yes;
+ local_headers = ["x-spamd-bar"];
+ authenticated_headers = ["authentication-results"];
+ skip_local = false;
+ skip_authenticated = true;
+}
+extended_spam_headers = true;
+```
+You can find more information about the milter headers [here](https://rspamd.com/doc/modules/milter_headers.html).
+
+Let's add some whitelists for domains your users often communicate with. If the sender address has dkim, spf and dmarc records the chancew is higher, that it is actually the sender, you wanted to whitelist. You can read abourt whitelists [here](https://rspamd.com/doc/modules/whitelist.html).
+
+/etc/rspamd/local.d/whitelist.conf
+```
+rules {
+    WHITELIST_SPF = {
+        valid_spf = true;
+        domains = "$CONFDIR/local.d/whitelist_domains.map"; 
+        score = -5.0;
+    }
+
+    WHITELIST_DKIM = {
+        valid_dkim = true;
+        domains = "$CONFDIR/local.d/whitelist_domains.map";
+        score = -12.0;
+    }
+
+    WHITELIST_SPF_DKIM = {
+        valid_spf = true;
+        valid_dkim = true;
+        domains = "$CONFDIR/local.d/whitelist_domains.map";
+        score = -18.0;
+    }
+
+    WHITELIST_DMARC_DKIM = {
+        valid_dkim = true;
+        valid_dmarc = true;
+        domains = "$CONFDIR/local.d/whitelist_domains.map";
+        score = -27.0;
+    }
+}
+```
+You can later add important domains here.
+
+/etc/rspamd/local.d/whitelist_domains.map
+```
+github.com
+merlinux.eu
+testrun.org
+riseup.org
+```
+Let's also use the [replies](https://rspamd.com/doc/modules/replies.html) Module.
+
+/etc/rspamd/local.d/replies.conf
+```
+action = "no action";
+expire = 7d; # Expires after 7 days
+key_prefix = "rr";
+message = "Message is reply to one we originated";
+symbol = "REPLY";
+```
+Finally, restart the Rspamd service:
+
+```
+$ sudo systemctl restart rspamd
+```
+#### Access the Rspamd Web-interface
+
+You can now choose how you want to access the webinterface. There's two Methods. Either you make it publically available through nginx. Or you can later access it with ssh-tunneling.
+
+To only access via ssh-tunneling skip this step.
+
+/etc/nginx/sites-enabled/mailsetup
+```
+....
+location /rspamdshdgfjsfgjdhgsfuzjguewzgguztgugztgugcmnbvbmn {
+    proxy_pass http://127.0.0.1:11334/;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+....
+```
+You should now be ablew to visit:
+https://merlinux.eu/rspamdshdgfjsfgjdhgsfuzjguewzgguztgugztgugcmnbvbmn
+
+Recommended:
+To access rspamd with ssh-tunneling use this in a second shell on your local computer:
+```
+ssh -L 11334:localhost:11334 <youruser>@<yourserver>
+```
+And head to http://localhost:11334/ in your browser.
+
+#### DKIM signing with Rspamd
+DomainKeys Identified Mail (DKIM) is an email authentication method which adds a cryptographic signature to outbound message headers. It allows the receiver to verify that an email claiming to originate from a specific domain was indeed authorized by the owner of that domain. The main purpose of this is to prevent forged email messages. Let's create a new DKIM Keypair.
+```
+$ sudo mkdir /var/lib/rspamd/dkim/
+$ sudo su
+$ rspamadm dkim_keygen -b 2048 -s mail -k /var/lib/rspamd/dkim/mail.key > /var/lib/rspamd/dkim/mail.pub
+$ exit
+```
+In the example above, we are using mail as a DKIM selector.
+You should now have two new files in the /var/lib/rspamd/dkim/ directory, mail.key which is our private key file, and mail.pub, a file which contains the DKIM public key. We will update our DNS zone records later.
+Set the correct ownership and permissions:
+```
+$ sudo chown -R _rspamd: /var/lib/rspamd/dkim 
+$ sudo chmod 440 /var/lib/rspamd/dkim/*
+```
+Now we need to tell Rspamd where to look for the DKIM key, the selector name, and the last line, which will enable DKIM signing for alias sender addresses. To do that, create a new file with the following contents:
+/etc/rspamd/local.d/dkim_signing.conf
+```
+selector = "mail";
+path = "/var/lib/rspamd/dkim/$selector.key";
+allow_username_mismatch = true;
+```
+Rspamd also supports signing for Authenticated Received Chain (ARC) signatures. You can find more information about the ARC specification [here](http://arc-spec.org/). Rspamd uses the DKIM module for dealing with ARC signatures, so we can simply copy the previous configuration:
+```
+$ sudo cp  /etc/rspamd/local.d/dkim_signing.conf /etc/rspamd/local.d/arc.conf
+```
+Restart the Rspamd service for changes to take effect.
+```
+$ sudo systemctl restart rspamd
+```
+#### DNS settings
+We already created a DKIM key pair, and now we need to update our DNS zone. The DKIM public key is stored in the mail.pub file. 
+```
+$ sudo cat /var/lib/rspamd/dkim/mail.pub
+```
+The content of the file should look like this:
+```
+mail._domainkey IN TXT ( "v=DKIM1; k=rsa; "
+        "p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoE51Y+71GExkj3lWJN91ksKsWVt4omaDwuUmnjdGrPCQhoMnAWDa++sVA9B/n7xkfhW81TmMaLVBwz799HFQkVUNDmtrhrfij1mNv3UMP+U3oyGVwuVrmWL79C+2kPgRGPy7TB1Hasu28bW/WtJJIrJbTLgmQJGXR/eMjKds8zhWvLJ1ZbhHX1EZHc46xqBIP1xZ2WHOVOPOAR4e9"
+        "gYo3BEdgYqxPZzT/gxJ2ODOGbys/Au/9K7e29BTAb5S7DQMAydhed241/I7oZx1Bw8nI9pZq0bp0mZjHm4i4Z5WyBiNCZH2rk6KhzDCwk7PI5HWAXW9FetAZSF7SZPGE+ge5wIDAQAB"
+) ;
+```
+In most cases you can configure your DNS through a web interface. You need to create a new TXT record with mail._domainkey as a name, and for the value/content, you will need to remove the quotes and concatenate all three lines together.
+
+In our case, the value/content of the TXT record should look like this:
+```
+v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoE51Y+71GExkj3lWJN91ksKsWVt4omaDwuUmnjdGrPCQhoMnAWDa++sVA9B/n7xkfhW81TmMaLVBwz799HFQkVUNDmtrhrfij1mNv3UMP+U3oyGVwuVrmWL79C+2kPgRGPy7TB1Hasu28bW/WtJJIrJbTLgmQJGXR/eMjKds8zhWvLJ1ZbhHX1EZHc46xqBIP1xZ2WHOVOPOAR4e9gYo3BEdgYqxPZzT/gxJ2ODOGbys/Au/9K7e29BTAb5S7DQMAydhed241/I7oZx1Bw8nI9pZq0bp0mZjHm4i4Z5WyBiNCZH2rk6KhzDCwk7PI5HWAXW9FetAZSF7SZPGE+ge5wIDAQAB
+```
+
+
+### Setup OpenDKIM (Alternative to DKIM signing with rspamd)
+We would recommend to use rspamd for dkim signing. If you have followed the guide up until here, you won't need this and you can skip this step.
 ```
 $ sudo apt install opendkim opendkim-tools
 ```
@@ -631,14 +905,13 @@ $ sudo service postfix restart
 $ sudo service opendkim start
 $ sudo service opendkim restart
 ```
-Check if you got it right by sending an empty email to:
-check-auth@verifier.port25.com
-Or write an email to a gmail/yahoo/gmx account under your control and look into the header. It should show you something like: dkim=pass.
-[opendkim guide](https://www.digitalocean.com/community/tutorials/how-to-install-and-configure-dkim-with-postfix-on-debian-wheezy)
-
-(/etc/postfix/header_checks_submission file !?!?!)
 
 ### Setup DMARC
+Check if you got it right by sending an empty email to:
+check-auth@verifier.port25.com
+They will reply you with results.
+
+Or write an email to a gmail/yahoo/gmx account under your control and look into the header. It should show you something like: dkim=pass.
 
 If everything works sofar, we can add the dmarc record to our dns entries.
 Which will tell other mailservers only to accept mail from our destination,
@@ -650,7 +923,7 @@ notified when mails bounce because of failing dkim checks).
 ```
 Name: _dmarc
 
-Text: "v=DMARC1; p=reject; rua=mailto:your@email.com; ruf=mailto:your@email.com; adkim=r; aspf=r; rf=afrf"
+Text: "v=DMARC1; p=reject; rua=mailto:your@otheremail.com; ruf=mailto:your@otheremail.com; adkim=r; aspf=r; rf=afrf"
 ```
 Now you should be able to write emails to gmail/yahoo/gmx!
 
