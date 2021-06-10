@@ -29,27 +29,29 @@ _dmarc		IN	TXT	"v=DMARC1; p=reject; rua=mailto:your@email.com; ruf=mailto:your@e
 
 ## Install some basics (ufw, git, etckeeper, nginx, certbot)
 First let's install etckeeper, which is a useful tool for keeping track of the changes in your /etc directory.
+Up until now you should be root@<your-server>, if not the following commands should be run with sudo.
 ```
-$ sudo apt update && sudo apt full-upgrade
-$ sudo apt install etckeeper vim
-$ sudo vim /etc/etckeeper/etckeeper.conf
+$ apt update && sudo apt full-upgrade
+$ apt install etckeeper vim
+$ vim /etc/etckeeper/etckeeper.conf
 $ git config --global user.name "User"
 $ git config --global user.email "Email"
 $ git config --global core.editor "vim"
-$ sudo etckeeper init
-$ sudo etckeeper commit "init"
+$ etckeeper init
+$ etckeeper commit "init"
 ```
 
 ### Setup Users
 ```
-$ sudo apt install sudo
-$ sudo adduser <your-user>
-$ sudo adduser <your-user> sudo
+$ apt install sudo
+$ adduser <your-user>
+$ adduser <your-user> sudo
+$ su <your-user>
 
 $ sudo useradd --create-home --home-dir /var/vmail --user-group --shell /usr/sbin/nologin vmail
 $ sudo chown -R vmail /var/vmail
 $ sudo chgrp -R vmail /var/vmail
-$ sudo chmod -R 770 /var/vmail
+$ sudo chmod -R 660 /var/vmail
 ```
 Also edit the hostname an make sure to add FQDN and Hostname to
 ```
@@ -79,7 +81,7 @@ and change it to the following if you want, that all users with access to sudo, 
 ### Install Firewall
 Depending on your choice of services open specific ports. In this example we will open a lot of ports for mail. For simplicity we will use ufw.
 ```
-$ sudo apt install ufw nginx git unattended-upgrades
+$ sudo apt install ufw nginx git unattended-upgrades sshguard
 
 $ sudo ufw default deny incoming
 $ sudo ufw default allow outgoing
@@ -207,7 +209,7 @@ $ sudo apt install dovecot-common dovecot-imapd dovecot-lmtpd dovecot-sqlite
 Generate Diffie-Hellman Key (this can take a while)
 ```
 $ sudo su
-$ openssl dhparam 4096 > dh.pem
+$ openssl dhparam 4096 > /etc/dovecot/dh.pem
 $ exit
 ```
 
@@ -249,10 +251,6 @@ service imap {
 }
 
 service pop3 {
-}
-
-service submission {
- = 1024
 }
 
 service auth {
@@ -329,6 +327,7 @@ ssl_dh=</etc/dovecot/dh.pem
 ssl_min_protocol = TLSv1.2
 ```
 ```
+$ sudo systemctl enable --now dovecot
 $ sudo systemctl restart dovecot
 ```
 
@@ -376,8 +375,8 @@ broken_sasl_auth_clients = yes
 smtpd_sasl_auth_enable = yes
 smtpd_sender_restrictions = permit_mynetworks,reject_non_fqdn_sender,reject_unknown_sender_domain,reject_unlisted_sender,reject_sender_login_mismatch
 smtpd_recipient_restrictions = permit_sasl_authenticated,permit_mynetworks,reject_unauth_destination
-smtp_tls_security_level = encrypt
-smtpd_tls_security_level = encrypt
+smtp_tls_security_level = may
+smtpd_tls_security_level = may
 smtp_tls_note_starttls_offer = yes
 smtpd_tls_received_header = yes
 milter_default_action = accept
@@ -483,6 +482,7 @@ Now lets add a file:
 ```
 ```
 $ sudo systemctl restart postfix
+$ sudo systemctl enable --now postfix
 ```
 
 ### Install Mailadm
@@ -492,28 +492,30 @@ $ sudo apt install python3 python3-pip python3-venv
 $ cd ~
 $ git clone https://github.com/deltachat/mailadm
 $ cd mailadm
-$ vim install_mailadm.sh
-$ adduser mailadm vmail
-$ sudo chgrp vmail ~mailadm
+$ vim install_mailadm.sh # Look at the script and edit the corresponding settings
 ```
-Now review the installscript and change the enviroment variables. For example the `MAIL_DOMAIN=merlinux.eu` to your FQDN. As well as the `WEB_ENDPOINT`.
+Now review the installscript and change the enviroment variables. For example the `MAIL_DOMAIN=merlinux.eu` to your FQDN. As well as the `WEB_ENDPOINT` to your domain. And `VMAIL_HOME=/var/vmail` to the path we set our vmail user directory.
 And then run it.
 ```
 $ sudo bash install_mailadm.sh
 ```
-Add the mailadm executable to your PATH and set the database enviroment variable:
+Then run these commands and rerun the script:
 ```
-$ export PATH=~mailadm/venv/bin:$PATH
+$ sudo adduser mailadm vmail
+$ sudo bash install_mailadm.sh
+```
+Add the mailadm executable to your PATH and set the database enviroment variable. These lines can be added to .profile:
+```
+$ export PATH=/var/lib/mailadm/venv/bin:$PATH
 $ export MAILADM_DB=/var/lib/mailadm/mailadm.db
-```
-And set some permissions
-```
-$ sudo chmod 664 /var/lib/mailadm/mailadm.db
-$ sudo chmod 644 /var/lib/mailadm/virtual_mailboxes.db
-$ sudo chmod 644 /var/lib/mailadm/virtual_mailboxes
 ```
 We should be able to create a token now. It will be valid for one day. You can also create tokens, that will be valid for longer periods.
 ```
+$ sudo su mailadm
+$ bash
+$ source /var/lib/mailadm/venv/bin/activate
+$ export PATH=/var/lib/mailadm/venv/bin:$PATH
+$ export MAILADM_DB=/var/lib/mailadm/mailadm.db
 $ mailadm add-token oneday --expiry 1d --prefix="test."
 $ mailadm list-tokens
 ```
@@ -524,8 +526,8 @@ $ curl -X POST https://merlinux.eu/new_email?t=1d<your token params>
 ```
 This should return a burner email adress and the password.
 
-
 ### Setup OpenDKIM
+TODO: use rspamd for dkim signing, spam checking, rate limit
 ```
 $ sudo apt install opendkim opendkim-tools
 ```
