@@ -647,8 +647,8 @@ added the following values:
 rates {
     user = {
         bucket = {
-            burst = 90;
-            rate = "70 / 1min";
+            burst = 110;
+            rate = "90 / 1min";
         }
     }
 }
