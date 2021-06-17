@@ -619,7 +619,7 @@ not burdening the mail ecosystem with spam, and it's possible, though not very
 likely that spammers find out how to automatically use our registration
 mechanism.
 
-So we introduced the following config value to `/etc/postfix/main.conf`:
+~~So we introduced the following config value to `/etc/postfix/main.conf`:
 
 ```
 smtpd_client_message_rate_limit = 60
@@ -630,6 +630,63 @@ Then we reloaded postfix with `sudo systemctl reload postfix`.
 We didn't dare to make it even lower, in case someone who is in a lot of group
 chats has read receipts turned on. They wouldn't be able to send out messages
 anymore, and wouldn't know why. 60 is still really high, so it's unlikely they
-would reach it.
+would reach it.~~
 
+**Unfortunately this didn't work as expected, so we reverted the changes
+again.** We needed a whitelist for certain bot accounts; postfix didn't allow
+for such granular changes. So we turned to rspamd for a solution:
+
+### Implementing Rate Limiting with rspamd instead
+
+On 2021-06-17, we did it:
+
+First we configured rate limiting in `/etc/rspamd/local.d/ratelimit.conf`. We
+added the following values:
+
+```
+rates {
+    user = {
+        bucket = {
+            burst = 30;
+            rate = "20 / 1min";
+        }
+    }
+}
+whitelisted_user = "/etc/rspamd/local.d/whitelisted_users_ratelimit.map"
+```
+
+Then we added a whitelist file with email addresses which are exempted from the rate
+limit. You can find it at `/etc/rspamd/local.d/whitelist_users_ratelimit.map`.
+
+Afterwards we spent a whole lot of time wondering why it didn't work; until we
+found one small little sentence at the top of the rspamd ratelimit
+documentation, which suggested that rspamd needed to be configured for the
+ratelimit to work.
+
+So we installed redis with `sudo apt install redis-server` and added that
+following line to `/etc/rspamd/local.d/redis.conf`:
+
+```
+servers = "127.0.0.1";
+```
+
+We also downloaded the config files to this repository.
+
+Then we reloaded rspamd with `sudo systemctl restart rspamd` to apply the
+changes.
+
+Finally, we tested the new setup with a modified echo bot:
+https://github.com/deltachat-bot/echo/tree/testratelimit/rust. It sends 200
+messages in 20 seconds. It was not easy to spot changes, but after a while of
+tweaking and testing, `tail -f /var/log/mail.log |grep -i ratelimit -A 2` gave
+us ouput like this:
+
+```
+Jun 17 15:01:55 hq5 postfix/cleanup[13151]: 45C5627A0006: milter-reject: END-OF-MESSAGE from p200300eB1716BC22aEdF5cA76A2789D7.dip0.t-ipconnect.de[2003:eb:1716:bc22:aedf:5ca7:6a27:89d7]: 4.7.1 Ratelimit "user" exceeded; from=<raterowdy@testrun.org> to=<raterowdy@testrun.org> proto=ESMTP helo=<[127.0.0.1]>                               
+Jun 17 15:01:55 hq5 dovecot: imap(ktqwj@testrun.org)<13187><z56/z/XE+hAFrb2B>: Connection closed (CLOSE finished 0.142 secs ago) in=31 out=857 deleted=0 expunged=0 trashed=0 hdr_count=0 hdr_bytes=0 body_count=0 body_bytes=0
+Jun 17 15:01:55 hq5 postfix/submission/smtpd[13177]: disconnect from p200300eB1716BC22aEdF5cA76A2789D7.dip0.t-ipconnect.de[2003:eb:1716:bc22:aedf:5ca7:6a27:89d7] ehlo=2
+starttls=1 auth=1 mail=2 rcpt=4 data=1/2 quit=1 commands=12/13
+```
+
+After this, we were satisfied. And tired.
 
