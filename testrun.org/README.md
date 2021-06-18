@@ -637,6 +637,8 @@ not burdening the mail ecosystem with spam, and it's possible, though not very
 likely that spammers find out how to automatically use our registration
 mechanism.
 
+### First Try with Postfix
+
 ~~So we introduced the following config value to `/etc/postfix/main.conf`:~~
 
 ~~`smtpd_client_message_rate_limit = 60`~~
