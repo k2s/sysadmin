@@ -5,7 +5,8 @@ Author: missytake@systemli.org
 testrun.org is a playground; many people do different things here. Not
 everything is documented, but there is etckeeper to keep track of changes.
 
-It runs on a VPS in the Hetzner Cloud; the DNS settings are at Hetzner as well.
+~~It runs on a VPS in the Hetzner Cloud;~~ It runs on a bare metal machine at
+Hetzner; the DNS settings are at Hetzner as well.
 
 Many users have sudo; passwords are not required.
 
@@ -14,7 +15,7 @@ Mostly postfix, dovecot, and a static nginx site are running here.
 testrun.org offers an API for burner accounts, the code is here:
 https://github.com/deltachat/tadm
 
-Docker is installed, but only used if someone needs it.
+~~Docker is installed, but only used if someone needs it.~~
 
 ## Mail Server Administration
 
@@ -185,12 +186,12 @@ A       x       900     176.9.92.144
 MX      x       900     x.testrun.org
 ```
 
-And added ` x.testrun.org` to the `virtual_mailbox_domains` config key in
-`/etc/postfix/main.cf`.
+~~And added ` x.testrun.org` to the `virtual_mailbox_domains` config key in
+`/etc/postfix/main.cf`.~~
 
-I also wanted to create two test accounts to try it out, so I logged into the
+~~I also wanted to create two test accounts to try it out, so I logged into the
 mailadm user, changed the `/home/mailadm/mailadm.config` so x.testrun.org
-addresses were possible, and created two addresses:
+addresses were possible, and created two addresses:~~
 
 ```
 sudo su -l mailadm
@@ -598,11 +599,28 @@ it](https://gitlab.com/lightmeter/controlcenter/-/issues/499#note_583806220).
 
 ### Creating a systemd service
 
-**todo**
+Author: missytake@systemli.org
+
+On 2021-06-18, I finally chose to make a systemd service out of lightmeter,
+instead of just running `./start_lightmeter.sh` in a tmux shell.
+
+For this, I copied the contents of `/etc/systemd/system/mailadm-web.service` to
+`/etc/systemd/system/lightmeter.service`, and basically copy-pasted the command
+from `/home/lightmeter/start_lightmeter.sh`.
+
+I stopped the old script in the tmux shell. Then I enabled and started the
+service:
+
+```
+sudo systemctl daemon-reload
+sudo systemctl start lightmeter.service
+```
+
+Then I logged in with `ssh -L 8080:localhost:8080 testrun.org` and opened
+http://localhost:8080 to check whether it was still working. I also checked
+`sudo journalctl -fu lightmeter.service`. Everything was as expected.
 
 ## Secure SSH Access
-
-Author: missytake@systemli.org
 
 On 2021-04-23, we realized that SSH was not protected after the best practices.
 So I forbade PasswordAuthentication in the `/etc/ssh/sshd_config` and installed
@@ -619,13 +637,13 @@ not burdening the mail ecosystem with spam, and it's possible, though not very
 likely that spammers find out how to automatically use our registration
 mechanism.
 
-~~So we introduced the following config value to `/etc/postfix/main.conf`:
+~~So we introduced the following config value to `/etc/postfix/main.conf`:~~
 
 ```
 smtpd_client_message_rate_limit = 60
 ```
 
-Then we reloaded postfix with `sudo systemctl reload postfix`.
+~~Then we reloaded postfix with `sudo systemctl reload postfix`.
 
 We didn't dare to make it even lower, in case someone who is in a lot of group
 chats has read receipts turned on. They wouldn't be able to send out messages
