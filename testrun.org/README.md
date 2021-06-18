@@ -639,9 +639,7 @@ mechanism.
 
 ~~So we introduced the following config value to `/etc/postfix/main.conf`:~~
 
-```
-smtpd_client_message_rate_limit = 60
-```
+~~`smtpd_client_message_rate_limit = 60`~~
 
 ~~Then we reloaded postfix with `sudo systemctl reload postfix`.~~
 
