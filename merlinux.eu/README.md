@@ -1,8 +1,5 @@
 # merlinux.eu (hq6)
-merlinux.eu specifically was set up as the business email server for merlinux GmbH by Janek. It's a 1-core VM hosted at Hetzner. In addition to the following guide, which was created as a "clean" mailserver setup for hq6 and dubby, we installed rspamd on hq6.
-
-## How to setup a Mailserver for Deltachat with Dovecot and Postfix (hq6 and dubby)
-This should be an example how to setup a very minimalistic Mailserver for use with DeltaChat. We will use [mailadm](https://github.com/deltachat/mailadm) to manage mail accounts and create qr-join codes.
+merlinux.eu specifically was set up as the business email server for merlinux GmbH by Janek. It's a 1-core VM hosted at Hetzner. In addition to the following guide, which was created as a "clean" mailserver setup for hq6 and dubby, we installed rspamd on hq6. We used  [mailadm](https://github.com/deltachat/mailadm) to manage mail accounts.
 
 ### Before we install the mailserver components, we should take a look at our dns setting at our dns provider.
 This is the full example zone file. First you should set the A, AAAA, MX records. Also set the SPF record. Later we will add TXT records for DKIM and DMARC. Also remember, that you need to set a Reverse-DNS-Record / PTR for your FQDN. You usually do this at the hosting provider. You usually do not have to configure the Nameserver/Zone of Authority records (NS, SOA), since most providers do this for you and will let you configure your domain with an webinterface.

@@ -1,6 +1,3 @@
-# merlinux.eu (hq6)
-merlinux.eu specifically was set up as the business email server for merlinux GmbH by Janek. It's a 1-core VM hosted at Hetzner. In addition to the following guide, which was created as a "clean" mailserver setup for hq6 and dubby, we installed rspamd on hq6.
-
 ## How to setup a Mailserver for Deltachat with Dovecot and Postfix (hq6 and dubby)
 This should be an example how to setup a very minimalistic Mailserver for use with DeltaChat. We will use [mailadm](https://github.com/deltachat/mailadm) to manage mail accounts and create qr-join codes.
 
@@ -799,113 +796,6 @@ In our case, the value/content of the TXT record should look like this:
 v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAoE51Y+71GExkj3lWJN91ksKsWVt4omaDwuUmnjdGrPCQhoMnAWDa++sVA9B/n7xkfhW81TmMaLVBwz799HFQkVUNDmtrhrfij1mNv3UMP+U3oyGVwuVrmWL79C+2kPgRGPy7TB1Hasu28bW/WtJJIrJbTLgmQJGXR/eMjKds8zhWvLJ1ZbhHX1EZHc46xqBIP1xZ2WHOVOPOAR4e9gYo3BEdgYqxPZzT/gxJ2ODOGbys/Au/9K7e29BTAb5S7DQMAydhed241/I7oZx1Bw8nI9pZq0bp0mZjHm4i4Z5WyBiNCZH2rk6KhzDCwk7PI5HWAXW9FetAZSF7SZPGE+ge5wIDAQAB
 ```
 
-
-### Setup OpenDKIM (Alternative to DKIM signing with rspamd)
-We would recommend to use rspamd for dkim signing. If you have followed the guide up until here, you won't need this and you can skip this step.
-```
-$ sudo apt install opendkim opendkim-tools
-```
-Let's start with the main configuration file.
-```
-$ sudo vim /etc/opendkim.conf
-```
-```
-AutoRestart             Yes
-AutoRestartRate         10/1h
-UMask                   002
-Syslog                  yes
-SyslogSuccess           Yes
-LogWhy                  Yes
-
-Canonicalization        relaxed/simple
-
-ExternalIgnoreList      refile:/etc/opendkim/TrustedHosts
-InternalHosts           refile:/etc/opendkim/TrustedHosts
-KeyTable                refile:/etc/opendkim/KeyTable
-SigningTable            refile:/etc/opendkim/SigningTable
-
-Mode                    sv
-PidFile                 /var/run/opendkim/opendkim.pid
-SignatureAlgorithm      rsa-sha256
-
-UserID                  opendkim:opendkim
-
-Socket                  inet:11025@localhost
-
-```
-```
-$ sudo vim /etc/default/opendkim
-```
-Add the following line:
-```
-SOCKET="inet:11025@localhost"
-```
-Configure postfix to use the milter:
-```
-$ sudo vim /etc/postfix/main.cf
-```
-```
-milter_protocol = 6
-milter_default_action = accept
-
-smtpd_milters = inet:localhost:11025
-non_smtpd_milters = inet:localhost:11025
-```
-Create some directories
-```
-$ sudo mkdir /etc/opendkim
-$ sudo mkdir /etc/opendkim/keys
-```
-Add trusted hosts.
-```
-$ sudo vim /etc/opendkim/TrustedHosts
-```
-```
-127.0.0.1
-localhost
-::1
-
-*.merlinux.eu
-
-#*.example.net
-```
-Create a key table:
-```
-$ sudo vim /etc/opendkim/KeyTable
-```
-```
-mail._domainkey merlinux.eu:mail:/etc/opendkim/keys/merlinux.eu/mail.private
-```
-Create a signing table:
-```
-$ sudo vim /etc/opendkim/SigningTable
-```
-```
-*@merlinux.eu mail._domainkey
-```
-Generate keys:
-```
-$ cd /etc/opendkim/keys
-$ sudo mkdir merlinux.eu
-$ cd merlinux.eu
-```
-```
-$ sudo opendkim-genkey -s mail -d merlinux.eu
-$ sudo chown opendkim:opendkim mail.private
-```
-Now /etc/opendkim/keys/merlinux.eu/mail.txt should contain our public DKIM key. Now let's add it to our DNS entries:
-```
-Name: mail._domainkey
-
-Text: "v=DKIM1; k=rsa; p=............................................................."
-```
-Now restart postfix and opendkim:
-```
-$ sudo service postfix restart
-$ sudo service opendkim start
-$ sudo service opendkim restart
-```
-
 ### Setup DMARC
 Check if you got it right by sending an empty email to:
 check-auth@verifier.port25.com
@@ -931,12 +821,3 @@ Now you should be able to write emails to gmail/yahoo/gmx!
 
 You can now test your setup and connect [deltachat](http://get.delta.chat/) to
 your new mailserver.
-
-## Secure SSH Access
-
-Author: missytake@systemli.org
-
-On 2021-04-23, we realized that SSH was not protected after the best practices.
-So I installed sshguard with `sudo apt install sshguard`. The default config
-seemed fine, so I didn't touch anything.
-
