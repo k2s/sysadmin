@@ -708,3 +708,15 @@ starttls=1 auth=1 mail=2 rcpt=4 data=1/2 quit=1 commands=12/13
 
 After this, we were satisfied. And tired.
 
+## More fun with rspamd
+
+On 2021-06-18, we tried to improve our spam filter - I took a quick look at the
+rspamd web interface and saw that the one spam mail I found (with the score 8
+or so) got a "spam" header, but was not rejected. It also had a PHISHING
+symbol, but with only small weight.
+
+So I edited `/etc/rspamd/modules.d/phishing.conf` and looked what could be optimized
+to recognize spam more definitely - after looking into it for a while, I found that the only
+thing which really made a difference was enabling openphish.
+
+Afterwards, I reloaded rspamd and committed the changes to etckeeper.
