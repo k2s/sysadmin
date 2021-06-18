@@ -643,9 +643,9 @@ mechanism.
 smtpd_client_message_rate_limit = 60
 ```
 
-~~Then we reloaded postfix with `sudo systemctl reload postfix`.
+~~Then we reloaded postfix with `sudo systemctl reload postfix`.~~
 
-We didn't dare to make it even lower, in case someone who is in a lot of group
+~~We didn't dare to make it even lower, in case someone who is in a lot of group
 chats has read receipts turned on. They wouldn't be able to send out messages
 anymore, and wouldn't know why. 60 is still really high, so it's unlikely they
 would reach it.~~
