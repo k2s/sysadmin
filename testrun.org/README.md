@@ -725,12 +725,11 @@ Afterwards, I reloaded rspamd and committed the changes to etckeeper.
 
 On 2021-06-23 we decided to try pflogsumm to analyze postfix logs daily.
 
-First i created the alias mailreports@merlinux.eu on merlinux.eu to recieve the report. You can see it [here](https://github.com/deltachat/sysadmin/tree/master/merlinux.eu#mailreports)
-On Testrun i installed pflogsumm. Send mail was already installed.
+First i created the alias mailreports@merlinux.eu on merlinux.eu to recieve the report. You can see it [here](https://github.com/deltachat/sysadmin/tree/master/merlinux.eu#mailreports). On testrun we installed pflogsumm. sendmail was already installed.
 ```
 $ sudo apt install pflogsumm procmail
 ```
-I created a script at `/usr/local/sbin/postfix_report.sh`
+We created a script at `/usr/local/sbin/postfix_report.sh`
 ```
 #!/bin/sh
 
@@ -746,4 +745,4 @@ $ sudo crontab -e
 ```
  0 0 * * * /usr/local/sbin/postfix_report.sh &> /dev/null
 ```
-Now some admins should recieve a daily update the previous day. 
+Now some admins should recieve a daily summery about previous day.

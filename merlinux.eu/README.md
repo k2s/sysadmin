@@ -942,6 +942,6 @@ seemed fine, so I didn't touch anything.
 we decided to try pflogsumm on testrun. So i added an alias.
 
 ```
-$ vim /etc/postfix/virtual
-$ postmap /etc/postfix/virtual
+$ sudo vim /etc/postfix/virtual
+$ sudo postmap /etc/postfix/virtual
 ```
