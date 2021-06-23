@@ -720,3 +720,30 @@ to recognize spam more definitely - after looking into it for a while, I found t
 thing which really made a difference was enabling openphish.
 
 Afterwards, I reloaded rspamd and committed the changes to etckeeper.
+
+## Postfix log statistics report
+
+On 2021-06-23 we decided to try pflogsumm to analyze postfix logs daily.
+
+First i created the alias mailreports@merlinux.eu on merlinux.eu to recieve the report. You can see it [here](https://github.com/deltachat/sysadmin/tree/master/merlinux.eu#mailreports)
+On Testrun i installed pflogsumm. Send mail was already installed.
+```
+$ sudo apt install pflogsumm procmail
+```
+I created a script at `/usr/local/sbin/postfix_report.sh`
+```
+#!/bin/sh
+
+pflogsumm -d yesterday /var/log/mail.log | formail -c -I"Subject: Mail Statistics" -I"From: pflogsumm@testrun.org" -I"To: mailreports@merlinux.eu" -I"Received: from testrun.org (176.9.92.144)" | sendmail mailreports@merlinux.eu
+
+exit 0
+```
+Made it executable and added a daily cronjob.
+```
+$ sudo chmod +x /usr/local/sbin/postfix_report.sh
+$ sudo crontab -e
+```
+```
+ 0 0 * * * /usr/local/sbin/postfix_report.sh &> /dev/null
+```
+Now some admins should recieve a daily update the previous day. 

@@ -937,3 +937,11 @@ On 2021-04-23, we realized that SSH was not protected after the best practices.
 So I installed sshguard with `sudo apt install sshguard`. The default config
 seemed fine, so I didn't touch anything.
 
+## Mailreports
+
+we decided to try pflogsumm on testrun. So i added an alias.
+
+```
+$ vim /etc/postfix/virtual
+$ postmap /etc/postfix/virtual
+```
