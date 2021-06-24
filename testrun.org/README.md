@@ -733,6 +733,8 @@ We created a script at `/usr/local/sbin/postfix_report.sh`
 ```
 #!/bin/sh
 
+PATH=/usr/sbin:/usr/bin:/sbin:/bin
+
 pflogsumm -d yesterday /var/log/mail.log | formail -c -I"Subject: Mail Statistics" -I"From: pflogsumm@testrun.org" -I"To: mailreports@merlinux.eu" -I"Received: from testrun.org (176.9.92.144)" | sendmail mailreports@merlinux.eu
 
 exit 0
