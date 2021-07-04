@@ -629,5 +629,10 @@ sshguard with `sudo apt install sshguard`. The default config seemed fine, so I
 didn't touch anything.
 
 ## Fixing blank page issue
+
 2021-07-04
-After realizing [that emails sent by the supportforum are being rejected](https://github.com/deltachat/sysadmin-issues/issues/27), missytake updated the forum to the newest version. Then it returned a blank page. We tried restarting and rebuilding the container, but it didn't help. After some research we tried this [fix](https://meta.discourse.org/t/blank-white-page-after-update/44678/13), setting a variable in app.yml to stable and then rebuilding again. Afterwards it worked again.
+After realizing [that emails sent by the supportforum are being rejected](https://github.com/deltachat/sysadmin-issues/issues/27), we updated the forum to the newest version. It started to return a blank page. We tried restarting and rebuilding the container, but it didn't help. After some research we tried this [fix](https://meta.discourse.org/t/blank-white-page-after-update/44678/13), setting the branch variable in app.yml to stable and then rebuilding again. Afterwards it seemed to work again. But shortly after we got reports, that the preferences and user profile did result in a 404.
+
+We reverted these changes again, rebuilt and the settings were back and the page wasn't blank anymore. Seemingly changing the branch to be checked out, as suggested in the above mentioned fix only forced a full rebuild, which was not achived with `/var/discourse/launcher rebuild app`.
+
+docker-compose has an option like 'docker-compose rebuild --no-cache'. Discourse has an wrapper script for docker called /var/discourse/launcher. Apperently it is possible to pass docker args to this script with `/var/discourse/launcher --docker-args --no-cache rebuild app`
