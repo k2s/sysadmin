@@ -628,3 +628,6 @@ So I forbade PasswordAuthentication in the `/etc/ssh/sshd_config` and installed
 sshguard with `sudo apt install sshguard`. The default config seemed fine, so I
 didn't touch anything.
 
+## Fixing blank page issue
+
+After realizing [that emails sent by the supportforum are being rejected](https://github.com/deltachat/sysadmin-issues/issues/27), missytake updated the forum to the newest version. Then it returned a blank page. We tried restarting and rebuilding the container, but it didn't help. After some research we tried this [fix](https://meta.discourse.org/t/blank-white-page-after-update/44678/13), setting a variable in app.yml to stable and then rebuilding again. Afterwards it worked again.
