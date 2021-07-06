@@ -635,4 +635,10 @@ After realizing [that emails sent by the supportforum are being rejected](https:
 
 We reverted these changes again, rebuilt and the settings were back and the page wasn't blank anymore. Seemingly changing the branch to be checked out, as suggested in the above mentioned fix only forced a full rebuild, which was not achived with `/var/discourse/launcher rebuild app`.
 
-docker-compose has an option like 'docker-compose rebuild --no-cache'. Discourse has an wrapper script for docker called /var/discourse/launcher. Apperently it is possible to pass docker args to this script with `/var/discourse/launcher --docker-args --no-cache rebuild app`
+docker-compose has an option like 'docker-compose rebuild --no-cache'. Discourse has an wrapper script for docker called /var/discourse/launcher. ~~Apperently it is possible to pass docker args to this script with `/var/discourse/launcher --docker-args --no-cache rebuild app`~~
+
+On 2021-07-06, nami and janek created a new address on testrun, delta-forum@testrun.org, to send notifications and let user reply to notification emails. We've set the corresponding values in `/var/discourse/containers/app.yml` and rebuild with `/var/discourse/launcher rebuild app`.
+
+Then we looked up how to [set up reply via email support](https://meta.discourse.org/t/set-up-reply-via-email-support/14003/1) and used the same email(delta-forum@testrun.org) in the admin page settings with pop3 synchronisation.
+
+We verified, that the forum could again send confirmation mails and, that you could just reply to emails and thus trigger replies in the forum.
