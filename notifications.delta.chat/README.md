@@ -401,7 +401,8 @@ Afterwards, `curl https://notifications.delta.chat` returned `Hello World!`. We 
 
 ### Clean up Data on testrun.org
 
-At some point, we need to clean up the cert, databases, and systemd files from testrun.org. But first, we should wait if problems arise after the migration. After a month or so, we should do this on testrun.org:
+We waited a few weeks if problems arised after the migration. At some point,
+we cleaned up the cert, databases, and systemd files from testrun.org:
 
 ```
 sudo deluser --remove-home notifications
