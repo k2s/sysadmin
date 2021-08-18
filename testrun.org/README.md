@@ -584,7 +584,7 @@ In the settings, we enabled email notifications and added testrun.org as an
 email address. Unfortunately we couldn't test the mail notifications and the
 graphics didn't show anything yet.
 
-## Syslog timestamps
+### Syslog timestamps
 
 On 2021-02-01 Janek changed the timestamp format of all syslog files to
 RFC-3339. To do so, he commented out the following line in `/etc/rsyslog.conf`:
@@ -619,6 +619,17 @@ sudo systemctl start lightmeter.service
 Then I logged in with `ssh -L 8080:localhost:8080 testrun.org` and opened
 http://localhost:8080 to check whether it was still working. I also checked
 `sudo journalctl -fu lightmeter.service`. Everything was as expected.
+
+### Disabling Lightmeter again
+
+Lightmeter sent regular emails, that "this day no emails were sent" which was
+clearly wrong. As we didn't really use it, I disabled it on 2021-08-18. We can
+reenable it, if people want to.
+
+```
+sudo systemctl stop lightmeter
+sudo systemctl disable lightmeter
+```
 
 ## Secure SSH Access
 
