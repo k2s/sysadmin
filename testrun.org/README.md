@@ -759,3 +759,14 @@ $ sudo crontab -e
  0 0 * * * /usr/local/sbin/postfix_report.sh &> /dev/null
 ```
 Now some admins should recieve a daily summery about previous day.
+
+## mailadm fixup
+
+
+so i re-created the virtualenv (using python3.7 instead of python3.5 which
+doesn't exist anymore on hq5), installed mailadm with "cd mailadm ; pip install
+-e .", and added the MAILADM_DB=/var/lib/mailadm2/mailadm.db parameter to
+.bashrc -- the last point ia m not sure why i needed to do this.  It's needed
+for direct possibiliy of "ssh mailadm@hq5.merlinux.eu" and issuing "mailadm"
+which works now
+
