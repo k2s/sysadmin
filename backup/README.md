@@ -604,6 +604,19 @@ service cron reload
 etckeeper commit "cronjob for backup"
 ```
 
+### Fixing backup cronjob
+
+On 2021-10-27 I realized that the backup cronjob hadn't worked since February.
+I investigated the logs and saw that the cronjob had failed with the following
+message:
+
+```
+pam_env(cron:session): Unable to open env file: /etc/default/locale: No such file or directory
+```
+
+Indeed the file was missing. I just copied my local /etc/default/locale to
+login.testrun.org - now it works again.
+
 ## devpi.net
 
 what's supposed to work after restore?
