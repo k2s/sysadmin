@@ -10,6 +10,8 @@ service dovecot stop
 service postfix stop
 service unattended-upgrades stop
 service zerotier-one stop
+service mailadm-web stop
+service mailadm-prune stop
 # Is docker running?
 startdocker=0
 systemctl is-active --quiet docker && startdocker=1
@@ -35,6 +37,8 @@ service dovecot start
 service postfix start
 service unattended-upgrades start
 service zerotier-one start
+service mailadm-web start
+service mailadm-prune start
 # Restart only if they were running before
 if [ startdocker = 1 ]; then service docker start; fi
 # Delete old backups

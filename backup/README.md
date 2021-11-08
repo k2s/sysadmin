@@ -490,6 +490,7 @@ what's supposed to work after restore?
 - ssh
 - unattended-upgrades
 - zerotier-one
+- mailadm
 
 First, I generated an SSH keypair (without a passphrase) on the server:
 
