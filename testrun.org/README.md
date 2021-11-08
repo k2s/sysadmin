@@ -402,7 +402,7 @@ I logged out and in again, and now it worked.
 
 Authors: missytake@systemli.org & janek@merlinux.eu
 
-On 2020-01-18, we upgraded testrun.org from debian stretch to buster (debian 10
+On 2021-01-18, we upgraded testrun.org from debian stretch to buster (debian 10
 current stable release) and deployed TLSv1.3.
 
 We will use this guide:
