@@ -918,3 +918,12 @@ On 2021-04-23, we realized that SSH was not protected after the best practices.
 So I installed sshguard with `sudo apt install sshguard`. The default config
 seemed fine, so I didn't touch anything.
 
+## Redirect
+
+On 2021-11-11, r10s realized that the URL of the new [GDPR
+blogpost](https://delta.chat/en/2021-11-10-blog-GDPR) contained upper case
+characters, which is tricky for some clients.
+
+So I added `rewrite /en/2021-11-10-blog-gdpr /en/2021-11-10-blog-GDPR
+permanent;` to the nginx config and reloaded the page; now it works, too.
+

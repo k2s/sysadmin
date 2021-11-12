@@ -151,6 +151,8 @@ server {
     rewrite /en/spec      https://github.com/deltachat/spec/blob/master/spec.md#email-chat-specification permanent;
     rewrite /en/standards https://github.com/deltachat/deltachat-android/blob/master/standards.md#standards-used-in-delta-chat permanent;
 
+    rewrite /en/2021-11-10-blog-gdpr /en/2021-11-10-blog-GDPR permanent;
+
     rewrite /de/support  /de/contribute permanent;
     rewrite /en/support  /en/contribute permanent;
     rewrite /es/support  /es/contribute permanent;
