@@ -925,5 +925,6 @@ blogpost](https://delta.chat/en/2021-11-10-blog-GDPR) contained upper case
 characters, which is tricky for some clients.
 
 So I added `rewrite /en/2021-11-10-blog-gdpr /en/2021-11-10-blog-GDPR
-permanent;` to the nginx config and reloaded the page; now it works, too.
+permanent;` to the nginx config and reloaded the page with `sudo systemctl
+reload nginx`; now it works, too.
 
