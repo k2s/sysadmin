@@ -7,7 +7,7 @@ StartLimitBurst=3
 [Service]
 WorkingDirectory=/home/notifications
 ExecStart=/home/notifications/notifiers/target/release/notifiers --certificate-file /home/notifications/cert.p12 --password "p4ssw0rd" --topic "chat.delta" --interval 20m
-Restart=unless-stopped
+Restart=on-failure
 RestartSec=60
 KillSignal=SIGQUIT
 Type=simple
