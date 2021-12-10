@@ -28,14 +28,9 @@ I configured the following DNS records at Hetzner:
 ```
 A	x	5.1.93.58			900
 AAAA	x	2a00:f820:417:0:5:1:93:58	600
-```
-
-Apart from that, still configured correctly were:
-
-```
-CNAME	imap.x	x	900
-CNAME	smtp.x	x	900
-MX	x	dc.develcow.de.	900
+MX	x	dc.develcow.de.			900
+CNAME	imap.x	dc.develcow.de.			900
+CNAME	smtp.x	dc.develcow.de.			900
 ```
 
 ### Creating the Domain in mailcow
