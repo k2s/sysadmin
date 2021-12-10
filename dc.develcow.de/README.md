@@ -26,11 +26,13 @@ to set that up.
 I configured the following DNS records at Hetzner:
 
 ```
-A	x	5.1.93.58			900
-AAAA	x	2a00:f820:417:0:5:1:93:58	600
-MX	x	dc.develcow.de.			900
-CNAME	imap.x	dc.develcow.de.			900
-CNAME	smtp.x	dc.develcow.de.			900
+A	x		5.1.93.58			900
+AAAA	x		2a00:f820:417:0:5:1:93:58	600
+MX	x		dc.develcow.de.			900
+CNAME	imap.x		dc.develcow.de.			900
+CNAME	smtp.x		dc.develcow.de.			900
+CNAME	autoconfig.x	dc.develcow.de.			900
+CNAME	autodiscover.x	dc.develcow.de.			900
 ```
 
 ### Creating the Domain in mailcow
@@ -54,6 +56,13 @@ Then I added an SPF record as well:
 
 ```
 TXT	x	"v=spf1 a:dc.develcow.de -all"	600
+```
+
+Finally, I created a DMARC entry with the help of
+https://www.kitterman.com/dmarc_asst3.py and published it as well:
+
+```
+TXT	_dmarc.x	 v=DMARC1; p=none; rua=mailto:missytake@systemli.org; ruf=mailto:missytake@systemli.org; fo=1; adkim=r; aspf=r 	300
 ```
 
 ### Added Test Account
