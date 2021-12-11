@@ -90,7 +90,9 @@ At https://dc.develcow.de/mailbox#tab-filters, there was a Sieve rule in the
 In the https://github.com/deltachat/eppdperf script, test accounts use the
 python deltachat library to send each other messages. As long as this Sieve
 rule was active, the x.testrun.org accounts didn't receive those messages
-(sending was fine):
+(sending was fine). For the record, both accounts didn't have a DeltaChat
+folder, when I looked; probably the deltachat python library doesn't create
+one. The Sieve rule was:
 
 ```
 # global_sieve_before script
