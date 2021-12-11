@@ -62,7 +62,7 @@ Finally, I created a DMARC entry with the help of
 https://www.kitterman.com/dmarc_asst3.py and published it as well:
 
 ```
-TXT	_dmarc.x	 v=DMARC1; p=none; rua=mailto:missytake@systemli.org; ruf=mailto:missytake@systemli.org; fo=1; adkim=r; aspf=r 	300
+TXT	_dmarc.x	 v=DMARC1; p=reject; rua=mailto:missytake@systemli.org; ruf=mailto:missytake@systemli.org; fo=1; adkim=r; aspf=r 	300
 ```
 
 ### Added Test Account
