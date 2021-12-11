@@ -82,3 +82,32 @@ Then I used the spider account to test whether SPF & DKIM were configured
 correctly. I generated a mail address with https://dkimvalidator.com and sent a
 mail there; the results showed that everything was fine.
 
+## Commenting out Sieve rule
+
+At https://dc.develcow.de/mailbox#tab-filters, there was a Sieve rule in the
+"Global Prefilter".
+
+In the https://github.com/deltachat/eppdperf script, test accounts use the
+python deltachat library to send each other messages. As long as this Sieve
+rule was active, the x.testrun.org accounts didn't receive those messages
+(sending was fine):
+
+```
+# global_sieve_before script
+# global_sieve_before -> user sieve_before (mailcow UI) -> user sieve_after #(mailcow UI) -> global_sieve_after
+
+require ["mailbox", "fileinto"];
+
+if header :contains ["Chat-Version"] [""] {
+  if mailboxexists "DeltaChat" {
+    fileinto "DeltaChat";
+  } else {
+    fileinto :create "DeltaChat";
+  }
+  stop;
+}
+```
+
+On 2012-12-11, I commented it out. I don't know what it was supposed to do, but
+I asked around.
+
