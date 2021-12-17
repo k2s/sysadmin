@@ -87,7 +87,7 @@ server {
  		    for _, l in ipairs(list) do set[l] = true end
  		    return set
  		end
- 		local supported = Set {"ca","de","en","es","fr","it","nl","pl","pt","ru","sq","uk", "zh_CN", "tr", "id", "gl", "cs"}
+ 		local supported = Set {"ca","de","en","es","fr","it","nl","pl","pt","ru","sq","uk","zh_CN","tr","id","gl","cs","sk"}
 		-- if no language header is set, just return english
 		if string.find(ngx.var.request_uri, "en/en") then
 		    return ngx.exit(ngx.HTTP_NOT_FOUND)  -- 404 to stop redirect loop
